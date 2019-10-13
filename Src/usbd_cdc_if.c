@@ -52,9 +52,9 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include "debug.h"
-#include "x20_commands.h"
-
 #include "revision.h"
+#include "x20_defines.h"
+
 
 /* USER CODE END INCLUDE */
 

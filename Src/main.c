@@ -82,7 +82,7 @@ typedef struct {
     uint16_t ring_buffer_data_count;
 
 	// количество следующих дальше 32-битных сэмплов (16 бит)		2
-	uint8_t num_samples;
+	uint16_t num_samples;
 
 	// flexible array of samples
 	TR_BUF_SAMPLE_T samples[];
@@ -95,6 +95,8 @@ typedef struct {
 /* USER CODE BEGIN PD */
 
 void ExecutePendingCommands(ring_buffer *buffer);
+
+void CleanUpPendingCommands();
 
 void Physio_Start();
 
@@ -211,6 +213,7 @@ int main(void)
     debug_write_string(".................failed to allocate ring buffer for ");
     debug_write_int(RING_BUFFER_SAMPLES);
     debug_write_newline();
+    Error_Handler();
   }
   usb_package *transmit_buffer = malloc(usb_package_size);
   if (0 == transmit_buffer)
@@ -218,6 +221,7 @@ int main(void)
     debug_write_string(".................failed to allocate transmit_buffer of ");
     debug_write_int(usb_package_size);
     debug_write_newline();
+    Error_Handler();
   }
 
   // align to 4 bytes
@@ -265,11 +269,6 @@ int main(void)
 
 	  	ExecutePendingCommands(pRingBuf);
 
-	  	if (!sensorState.started)
-  	  	{
-	  		continue;
-  	  	}
-
 	    /* USER CODE BEGIN 3 */
 	      availableSamples = MAX30102_GetNumSamplesInFifo(&hi2c2) - 1;
 
@@ -278,29 +277,41 @@ int main(void)
 	          MAX30102_ReadFifo(&hi2c2, sample, 6);
 	          uint32_t IR = (sample[3] << 16) + (sample[4] << 8) + sample[5];
 
-	          if (sensorState.usingPpg)
-	          {
-//                  debug_write_string(" IR: ");
-//                  debug_write_int(IR);
-//                  debug_write_newline();
-	        	  ring_buffer_add_sample(pRingBuf, IR);
-	          }
-	          else
-	          {
-//                  debug_write_string(" RAMP: ");
-//                  debug_write_int(ramp);
-//                  debug_write_newline();
-	        	  ring_buffer_add_sample(pRingBuf, ++ramp);
-	          }
+			  if (sensorState.started != 0)
+			  {
 
+				  if (sensorState.usingPpg)
+				  {
+					  debug_write_string(" IR: ");
+					  debug_write_int(IR);
+					  debug_write_newline();
+					  ring_buffer_add_sample(pRingBuf, IR);
+
+				  }
+				  else
+				  {
+          	        debug_write_string(" RAMP: ");
+      	            debug_write_int(ramp);
+  	                debug_write_newline();
+                    ring_buffer_add_sample(pRingBuf, ++ramp);
+				  }
+			  }
 	          // put the value to our circular buffer for transmitting via USB
 	      }
 
-	      if( ! CDC_FreeToTransmit() ) continue;
+	      if( ! CDC_FreeToTransmit() )
+	      {
+	    	  debug_write_string("c");
+	      	  continue;
+	      }
 
 		  uint16_t num_samples = TR_BUF_SAMPLES;
 		  uint16_t ring_buffer_samples = ring_buffer_get_count(pRingBuf);
-	      if (ring_buffer_samples >= num_samples)
+	      if (ring_buffer_samples < num_samples)
+	      {
+	          debug_write_string("e");
+	      }
+	      else
 	      {
 	    	  // copy samples from the ring buffer to the transmit buffer
 	    	  for( uint16_t i = 0; i < num_samples; ++i)
@@ -324,6 +335,7 @@ int main(void)
 //	          debug_write_int(result);
 	          debug_write_newline();
 	      }
+
   }
   /* USER CODE END 3 */
 }
@@ -402,6 +414,7 @@ static void MX_I2C2_Init(void)
   }
   /* USER CODE BEGIN I2C2_Init 2 */
 
+  I2C2_ClearBusyFlagErratum(&hi2c2);
   /* USER CODE END I2C2_Init 2 */
 
 }
@@ -517,35 +530,67 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if( htim->Instance == TIM4 )
 	{
-		HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
+		if( sensorState.started)
+		{
+			// flash LED when recording physio data
+			HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
+		}
+		else
+		{
+			// Switch LED off
+			HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
+		}
 	}
+}
+
+void ExecutePendingCommands(ring_buffer *buffer)
+{
+	if (sensorState.startFlipped != 0 && sensorState.stopFlipped != 0)
+	{
+		int startPriority = sensorState.startTicks > sensorState.stopTicks ? 1 : 0;
+		if (startPriority != 0)
+		{
+			debug_write_string("Executed START with priority.");
+			ring_buffer_clear(buffer);
+			sensorState.started = 1;
+		}
+		else
+		{
+			debug_write_string("Executed STOP with priority.");
+			sensorState.started = 0;
+		}
+		CleanUpPendingCommands();
+		return;
+	}
+	if (sensorState.startFlipped != 0)
+	{
+        debug_write_string("Executed START.");
+        ring_buffer_clear(buffer);
+        sensorState.started = 1;
+        CleanUpPendingCommands();
+        return;
+	}
+	if (sensorState.stopFlipped != 0)
+	{
+        debug_write_string("Executed STOP.");
+        sensorState.started = 0;
+        CleanUpPendingCommands();
+        return;
+	}
+}
+
+void CleanUpPendingCommands()
+{
+	sensorState.startFlipped = 0;
+	sensorState.stopFlipped = 0;
+	sensorState.stopTicks = 0;
+	sensorState.startTicks = 0;
 }
 
 void Physio_Start()
 {
   sensorState.startFlipped = 1;
   sensorState.startTicks = HAL_GetTick();
-}
-
-void ExecutePendingCommands(ring_buffer *buffer)
-{
-	if (sensorState.startFlipped && sensorState.stopFlipped)
-	{
-		int startPriority = sensorState.startTicks > sensorState.stopTicks;
-		if (startPriority)
-		{
-			ring_buffer_free(buffer);
-			sensorState.started = 1;
-		}
-		else
-		{
-			sensorState.started = 0;
-		}
-		sensorState.startFlipped = 0;
-		sensorState.stopFlipped = 0;
-		sensorState.stopTicks = 0;
-		sensorState.startTicks = 0;
-	}
 }
 
 void Physio_Stop()

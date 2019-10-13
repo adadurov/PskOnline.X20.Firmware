@@ -1,5 +1,5 @@
-#ifndef x20_commands_h
-#define x20_commands_h
+#ifndef X20_COMMANDS_INCLUDED
+#define X20_COMMANDS_INCLUDED
 
 // Generation 0
 // revision info offset is 40 (decimal)
@@ -37,7 +37,30 @@ typedef struct
 }  __attribute__((packed))
 x20_capabilities_descriptor;
 
-typedef enum {
+
+#define TR_BUF_SAMPLE_T             uint32_t
+
+typedef struct {
+    // номер пакета после получения команды старт (32-бит)			4
+    uint32_t package_number;
+
+	// количество переполнений кругового буфера (32 бит)			4
+    uint32_t ring_buffer_overflows;
+
+	// количество измерений в круговом буфере (16 бит)				2
+    uint16_t ring_buffer_data_count;
+
+	// количество следующих дальше 32-битных сэмплов (16 бит)		2
+	uint16_t num_samples;
+
+	// flexible array of samples
+	TR_BUF_SAMPLE_T samples[];
+} __attribute__((packed))
+usb_package;
+
+
+
+enum x20_commands {
   // returns the capabilities descriptor defined by
   // x20_capabilities_descriptor
   X20_GET_CAPABILITIES_DESCRIPTOR = 0x20,
@@ -49,6 +72,6 @@ typedef enum {
   X20_START = 0x50,
 
   X20_STOP = 0x51
-} x20_commands;
+};
 
 #endif

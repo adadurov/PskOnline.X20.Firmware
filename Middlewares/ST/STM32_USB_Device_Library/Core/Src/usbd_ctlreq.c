@@ -183,9 +183,7 @@ USBD_StatusTypeDef  USBD_StdDevReq (USBD_HandleTypeDef *pdev , USBD_SetupReqType
 USBD_StatusTypeDef  USBD_StdItfReq (USBD_HandleTypeDef *pdev , USBD_SetupReqTypedef  *req)
 {
   USBD_StatusTypeDef ret = USBD_OK; 
-  debug_write_string("USBD_StdItfReq ");
-  debug_usb_setup_trace(req);
-  debug_write_newline();
+  debug_usb_setup_trace("USBD_StdItfReq", req);
   
   if (WINUSB_MS_VENDOR_CODE == req->bRequest)
   {
