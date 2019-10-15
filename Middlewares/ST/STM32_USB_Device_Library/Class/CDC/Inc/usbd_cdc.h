@@ -99,7 +99,8 @@ typedef struct _USBD_CDC_Itf
   int8_t (* Init)          (void);
   int8_t (* DeInit)        (void);
 
-  int8_t (* Control)       (USBD_SetupReqTypedef*, uint8_t** , uint16_t);
+  // pay attention to the size of the buffer ( USBD_CDC_HandleTypeDef.data ) when using this function
+  int8_t (* Control)       (USBD_SetupReqTypedef*, uint8_t** ppData, uint16_t expectedSize);
   int8_t (* Receive)       (uint8_t *, uint32_t *);  
 
 }USBD_CDC_ItfTypeDef;
@@ -107,16 +108,13 @@ typedef struct _USBD_CDC_Itf
 
 typedef struct
 {
-  uint32_t data[CDC_DATA_FS_MAX_PACKET_SIZE/4];      /* Force 32bits alignment */
-//  uint8_t  *RxBuffer;
+  uint32_t data[512/4];      /* Force 32bits alignment */
+
   uint8_t  *TxBuffer;   
-//  uint32_t RxLength;
   uint32_t TxLength;    
   
   __IO uint32_t TxState;     
-//  __IO uint32_t RxState;
 
-  uint8_t IsStarted;
 }
 USBD_CDC_HandleTypeDef; 
 

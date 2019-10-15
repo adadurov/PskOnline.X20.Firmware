@@ -372,8 +372,9 @@ static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev,
 
         if (USBD_OK == status)
         {
+          memcpy(hcdc->data, dataPtr, req->wLength);
           USBD_CtlSendData(pdev,
-        	               dataPtr,
+        		  	  	   hcdc->data,
                            req->wLength);
           return USBD_OK;
         }
