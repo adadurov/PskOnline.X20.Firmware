@@ -1,5 +1,5 @@
-#ifndef X20_COMMANDS_INCLUDED
-#define X20_COMMANDS_INCLUDED
+#ifndef PSK_X20_DEFINES
+#define PSK_X20_DEFINES
 
 // Generation 0
 // revision info offset is 40 (decimal)

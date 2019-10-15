@@ -60,6 +60,7 @@
 #include "uuid.h"
 #include "ring_buffer.h"
 #include "i2c_erratum.h"
+#include "psk_x20.h"
 
 /* USER CODE END Includes */
 
@@ -70,24 +71,6 @@
 #define TR_BUF_SAMPLE_T             uint32_t
 
 #define RING_BUFFER_SAMPLES         1024
-
-typedef struct {
-    // номер пакета после получения команды старт (32-бит)			4
-    uint32_t package_number;
-
-	// количество переполнений кругового буфера (32 бит)			4
-    uint32_t ring_buffer_overflows;
-
-	// количество измерений в круговом буфере (16 бит)				2
-    uint16_t ring_buffer_data_count;
-
-	// количество следующих дальше 32-битных сэмплов (16 бит)		2
-	uint16_t num_samples;
-
-	// flexible array of samples
-	TR_BUF_SAMPLE_T samples[];
-} usb_package;
-
 
 /* USER CODE END PTD */
 
@@ -215,7 +198,7 @@ int main(void)
     debug_write_newline();
     Error_Handler();
   }
-  usb_package *transmit_buffer = malloc(usb_package_size);
+  usb_package *transmit_buffer = (usb_package*)malloc(usb_package_size);
   if (0 == transmit_buffer)
   {
     debug_write_string(".................failed to allocate transmit_buffer of ");
@@ -240,7 +223,12 @@ int main(void)
   else
   {
 	  debug_write_string("    Failed to initialize MAX30102 chip.");
+	  debug_write_newline();
   }
+
+  debug_write_string("  Stack started at: ");
+  debug_write_int(&usb_package_size);
+  debug_write_newline();
 
   // needs a buffer of at least 15 bytes
   get_uid_str(serialNumber);
@@ -301,7 +289,7 @@ int main(void)
 
 	      if( ! CDC_FreeToTransmit() )
 	      {
-	    	  debug_write_string("c");
+//	    	  debug_write_string("c");
 	      	  continue;
 	      }
 
@@ -309,7 +297,7 @@ int main(void)
 		  uint16_t ring_buffer_samples = ring_buffer_get_count(pRingBuf);
 	      if (ring_buffer_samples < num_samples)
 	      {
-	          debug_write_string("e");
+//	          debug_write_string("e");
 	      }
 	      else
 	      {
@@ -321,19 +309,14 @@ int main(void)
 	          transmit_buffer->package_number++;
 	          transmit_buffer->ring_buffer_data_count = ring_buffer_samples;
 	          transmit_buffer->num_samples = num_samples;
-	          transmit_buffer->ring_buffer_overflows = 0;
+	          transmit_buffer->ring_buffer_overflows = pRingBuf->overflows;
+	          pRingBuf->overflows = 0;
 
 	          uint16_t len = sizeof(usb_package) + transmit_buffer->num_samples * sizeof(TR_BUF_SAMPLE_T);
 
 	          int result = -1;
-// transfer the package to the USB Host
+              // transfer the package to the USB Host
 	          result = CDC_Transmit_FS((uint8_t*)transmit_buffer, len);
-
-	          debug_write_string("    => PP");
-//	          debug_write_int(transmit_buffer->package_number);
-//	          debug_write_string(" ");
-//	          debug_write_int(result);
-	          debug_write_newline();
 	      }
 
   }

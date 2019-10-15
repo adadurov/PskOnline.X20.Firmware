@@ -357,8 +357,11 @@ static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev,
   switch (req->bmRequest & USB_REQ_TYPE_MASK)
   {
   case USB_REQ_TYPE_CLASS :
+	// does the control transfer has a data stage?
     if (req->wLength)
     {
+      // yes, there is a data stage?
+
       if (req->bmRequest & 0x80)
       {
     	debug_write_string("in ");
@@ -379,17 +382,18 @@ static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev,
       }
       else
       {
-    	debug_write_string("Unexpected! setup request with OUT data stage"); debug_write_newline();
+      	debug_write_string("out ");
+    	debug_write_string("Unexpected! setup request with OUT data stage");
+    	debug_write_newline();
         return USBD_FAIL;
       }
       
     }
     else
     {
-      debug_write_string("a ");
-      ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(req,
-                                                        (uint8_t*)req,
-                                                        0);
+      // no, there is no data stage
+      debug_write_string("nd ");
+      ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(req, 0, 0);
     }
     break;
 

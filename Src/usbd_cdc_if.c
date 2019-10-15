@@ -53,7 +53,7 @@
 /* USER CODE BEGIN INCLUDE */
 #include "debug.h"
 #include "revision.h"
-#include "x20_defines.h"
+#include "psk_x20.h"
 
 
 /* USER CODE END INCLUDE */
