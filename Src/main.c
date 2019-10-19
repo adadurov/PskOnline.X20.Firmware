@@ -61,6 +61,7 @@
 #include "ring_buffer.h"
 #include "i2c_erratum.h"
 #include "psk_x20.h"
+#include "revision.h"
 
 /* USER CODE END Includes */
 
@@ -186,8 +187,12 @@ int main(void)
   debug_write_string("\r\nPSK-X20 Initializing.................");
   debug_write_newline();
 
-  debug_write_string("  Built on:  ");
-  debug_write_string(__DATE__ " " __TIME__);
+  debug_write_string("  Built on:             ");
+  debug_write_string(BUILD_DATE);
+  debug_write_newline();
+
+  debug_write_string("  Revision:             ");
+  debug_write_string(REVISION_INFO);
   debug_write_newline();
 
   ring_buffer *pRingBuf = ring_buffer_alloc(RING_BUFFER_SAMPLES);
@@ -216,7 +221,7 @@ int main(void)
   if (HAL_OK == max30102_status)
   {
 	  uint8_t partId = MAX30102_GetPartId(&hi2c2);
-	  debug_write_string("  MAX30102 part_id: ");
+	  debug_write_string("  MAX30102 part_id:     ");
 	  debug_write_int(partId);
 	  debug_write_newline();
   }
@@ -226,13 +231,13 @@ int main(void)
 	  debug_write_newline();
   }
 
-  debug_write_string("  Stack started at: ");
-  debug_write_int(&usb_package_size);
+  debug_write_string("  Stack started at:     ");
+  debug_write_int(USB_PACKAGE_SIZE);
   debug_write_newline();
 
   // needs a buffer of at least 15 bytes
   get_uid_str(serialNumber);
-  debug_write_string("  STM32 UUID: ");
+  debug_write_string("  STM32 UUID:           ");
   debug_write_string(serialNumber);
   debug_write_newline();
 

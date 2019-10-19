@@ -29,6 +29,7 @@
 #include "usbd_ctlreq.h"
 #include "usbd_ioreq.h"
 #include "debug.h"
+#include "debug_usb.h"
 #include "winusb.h"
 
 
