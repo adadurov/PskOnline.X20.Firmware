@@ -107,6 +107,14 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+#define USB_PACKAGE_SIZE (sizeof(usb_package) + TR_BUF_SAMPLES * sizeof(TR_BUF_SAMPLE_T) + 16)
+
+uint32_t usb_package_buffer[USB_PACKAGE_SIZE / 4];
+
+char serialNumber[20];
+
+WAVEFORM_SENSOR_STATE sensorState;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -121,10 +129,6 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-char serialNumber[20];
-
-WAVEFORM_SENSOR_STATE sensorState;
 
 /* USER CODE END 0 */
 
@@ -144,11 +148,10 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  uint16_t usb_package_size = sizeof(usb_package) + TR_BUF_SAMPLES * sizeof(TR_BUF_SAMPLE_T) + 16;
 
   sensorState.bitsPerSample = 24;
   sensorState.samplingRate = 800;
-  sensorState.physioTransferSize = usb_package_size;
+  sensorState.physioTransferSize = USB_PACKAGE_SIZE;
 
   sensorState.started = 0;
   sensorState.usingPpg = 1;
@@ -203,17 +206,16 @@ int main(void)
     debug_write_newline();
     Error_Handler();
   }
-  usb_package *transmit_buffer = (usb_package*)malloc(usb_package_size);
+  usb_package *transmit_buffer = (usb_package*)usb_package_buffer;
   if (0 == transmit_buffer)
   {
     debug_write_string(".................failed to allocate transmit_buffer of ");
-    debug_write_int(usb_package_size);
+    debug_write_int(USB_PACKAGE_SIZE);
     debug_write_newline();
     Error_Handler();
   }
 
   // align to 4 bytes
-  transmit_buffer = (usb_package *)(((long long int)transmit_buffer) & 0xFFFFFFFFC);
   transmit_buffer->package_number = 0;
 
   HAL_StatusTypeDef max30102_status = MAX30102_Init(&hi2c2);
@@ -317,7 +319,7 @@ int main(void)
 	          transmit_buffer->ring_buffer_overflows = pRingBuf->overflows;
 	          pRingBuf->overflows = 0;
 
-	          uint16_t len = sizeof(usb_package) + transmit_buffer->num_samples * sizeof(TR_BUF_SAMPLE_T);
+	          uint16_t len = sizeof(usb_package) + num_samples * sizeof(TR_BUF_SAMPLE_T);
 
 	          int result = -1;
               // transfer the package to the USB Host
