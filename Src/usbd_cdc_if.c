@@ -127,9 +127,6 @@
 /** Received data over USB are stored in this buffer      */
 uint32_t x20_capabilities_descriptor_buffer[512 / sizeof(uint32_t)];
 
-/** Data to send over USB CDC are stored in this buffer   */
-uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
-
 /* USER CODE BEGIN PRIVATE_VARIABLES */
 
 static x20_capabilities_descriptor *capabilitiesDescriptor;
@@ -230,9 +227,7 @@ static int8_t CDC_Init_FS(void)
   debug_write_string("capabilitiesDescriptor ");
   debug_write_int(size);
   debug_write_newline();
-  /* Set Application Buffers */
-  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
-//  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+
   return (USBD_OK);
   /* USER CODE END 3 */
 }
