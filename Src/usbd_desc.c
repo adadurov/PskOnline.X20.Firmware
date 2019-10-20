@@ -452,6 +452,8 @@ uint8_t  *USBD_Sensor_GetUsrStrDescriptor(struct _USBD_HandleTypeDef *pdev ,uint
 
 	  if( MS_OS_DESCRIPTOR_INDEX == index )
 	  {
+		  // '!' is the request code that will be later sent
+		  // by the host to retrieve OS feature descriptors
 		  USBD_GetString((uint8_t*)"MSFT100!", USBD_StrDesc, length);
 		  return USBD_StrDesc;
 	  }

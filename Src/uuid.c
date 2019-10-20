@@ -1,14 +1,14 @@
 /*
  * uuid.c
  *
- *  Created on: 18 мая 2019 г.
- *      Author: Лёша
+ *  Created on: 18 пїЅпїЅпїЅ 2019 пїЅ.
+ *      Author: ЛёпїЅпїЅ
  */
 
 #include "uuid.h"
 #include "string.h"
 
-char *alphabeth = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+char *pAlphabeth = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 // limitation: remainder must fit into 16 bits
 void big_num_div(uint16_t *bigNumber, uint8_t size, uint16_t divisor, uint16_t *bigResult, uint16_t *remainder)
@@ -50,8 +50,8 @@ void get_uid_str(char * pUid) {
 	uint8_t digits = 0;
 	pUid[19] = 0;
 
-	uint16_t bigResult[6];
-	uint16_t bigNumber[6];
+	uint16_t bigResult[len];
+	uint16_t bigNumber[len];
 	uint16_t remainder;
 	memcpy(bigNumber, STM32_UUID_16, len*2);
 
@@ -60,10 +60,10 @@ void get_uid_str(char * pUid) {
     {
     	big_num_div(bigNumber, len, base, bigResult, &remainder);
 
-    	pUid[digits] = alphabeth[remainder];
+    	pUid[digits] = pAlphabeth[remainder];
     	++digits;
         // copy result to source
-    	memcpy(bigNumber, bigResult, len*2);
+    	memcpy(bigNumber, bigResult, len*sizeof(uint16_t));
     }
     pUid[digits] = 0;
 }
