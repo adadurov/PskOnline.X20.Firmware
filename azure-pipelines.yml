@@ -10,7 +10,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: dotnet build $(Build_Repository_LocalPath)/PskOnline.X20.DotNet.sln
+- script: dotnet build $Build_Repository_LocalPath/PskOnline.X20.DotNet.sln
   displayName: 'Run a one-line script'
 
 - script: |
