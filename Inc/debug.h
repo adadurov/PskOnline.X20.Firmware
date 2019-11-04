@@ -1,8 +1,7 @@
 #ifndef __DEBUG_OUTPUT_H
 #define __DEBUG_OUTPUT_H
 
-
-#define ENABLE_DEBUG
+#include "debug_control.h"
 
 #ifdef ENABLE_DEBUG
 

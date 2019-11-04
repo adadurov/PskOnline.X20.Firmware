@@ -22,11 +22,15 @@ extern void debug_write_init(UART_HandleTypeDef *huart)
 
 void debug_write_string(const char* string)
 {
-	while ( 0 != *string)
+	uint32_t len = 0;
+	const char* pTermChar = string;
+	while( *pTermChar != 0 )
 	{
-		HAL_UART_Transmit(debugUart, string, 1, 2);
-		string += 1;
+		++len;
+		++pTermChar;
 	}
+
+	HAL_UART_Transmit(debugUart, string, len /* chars to transmit */, len /* milliseconds*/);
 }
 
 void debug_write_int(uint32_t value)
@@ -50,7 +54,7 @@ void debug_write_newline()
 	debug_write_string("\r\n");
 }
 
-void debug_usb_setup_trace(const char *source, USBD_SetupReqTypedef *req)
+void usb_debug_usb_setup_trace(const char *source, USBD_SetupReqTypedef *req)
 {
   debug_write_counter();
   debug_write_string(source);

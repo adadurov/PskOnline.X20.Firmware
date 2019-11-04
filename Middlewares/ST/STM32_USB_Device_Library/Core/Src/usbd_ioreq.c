@@ -28,7 +28,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_ioreq.h"
 
-#include "debug.h"
+#include "debug_usb.h"
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
   * @{
@@ -99,7 +99,7 @@ USBD_StatusTypeDef  USBD_CtlSendData (USBD_HandleTypeDef  *pdev,
                                uint16_t len)
 {
 
-  debug_write_string("USBD_CtlSendData: "); debug_write_int(len); debug_write_newline();
+  usb_debug_write_string("USBD_CtlSendData: "); usb_debug_write_int(len); usb_debug_write_newline();
 
   /* Set EP0 State */
   pdev->ep0_state          = USBD_EP0_DATA_IN;                                      
@@ -124,7 +124,7 @@ USBD_StatusTypeDef  USBD_CtlContinueSendData (USBD_HandleTypeDef  *pdev,
                                        uint16_t len)
 {
 
-  debug_write_string("USBD_CtlContinueSendData: "); debug_write_int(len); debug_write_newline();
+  usb_debug_write_string("USBD_CtlContinueSendData: "); usb_debug_write_int(len); usb_debug_write_newline();
 
  /* Start the next transfer */
   USBD_LL_Transmit (pdev, 0x00, pbuf, len);   
@@ -191,8 +191,8 @@ USBD_StatusTypeDef  USBD_CtlSendStatus (USBD_HandleTypeDef  *pdev)
  /* Start the transfer */
   USBD_LL_Transmit (pdev, 0x00, NULL, 0);   
   
-  debug_write_string("USBD_CtlSendStatus");
-  debug_write_newline();
+  usb_debug_write_string("USBD_CtlSendStatus");
+  usb_debug_write_newline();
 
   return USBD_OK;
 }

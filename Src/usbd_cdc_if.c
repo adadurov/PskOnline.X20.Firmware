@@ -125,10 +125,7 @@
 /* Create buffer for and transmission           */
 /* It's up to user to redefine and/or remove those define */
 /** Received data over USB are stored in this buffer      */
-uint32_t x20_capabilities_descriptor_buffer[512 / sizeof(uint32_t)];
-
-/** Data to send over USB CDC are stored in this buffer   */
-uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
+static uint32_t x20_capabilities_descriptor_buffer[sizeof(x20_capabilities_descriptor) / sizeof(uint32_t) + 1];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
 
@@ -193,8 +190,7 @@ static int8_t CDC_Init_FS(void)
   /* USER CODE BEGIN 3 */
   debug_write_string("CDC_Init_FS"); debug_write_newline();
 
-  uint8_t revision_len = strlen(REVISION_INFO);
-  uint8_t size = sizeof(x20_capabilities_descriptor) + revision_len + 1;
+  uint8_t size = sizeof(x20_capabilities_descriptor);
   if(size > sizeof(x20_capabilities_descriptor_buffer))
   {
 	  debug_write_string(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> ");
@@ -209,30 +205,13 @@ static int8_t CDC_Init_FS(void)
   capabilitiesDescriptor->bits_per_sample = pSensorState->bitsPerSample;
   capabilitiesDescriptor->sampling_rate = pSensorState->samplingRate;
   capabilitiesDescriptor->bytes_per_physio_transfer = pSensorState->physioTransferSize;
-
-  // copy build date in safe manner
-  char* build_date = BUILD_DATE;
-  uint8_t build_date_str_len = strlen(build_date);
-  uint8_t build_date_size = sizeof(capabilitiesDescriptor->firmware_build_date);
-  strncpy(capabilitiesDescriptor->firmware_build_date,
-          build_date,
-          build_date_size - 1);
-  uint8_t last = build_date_size > build_date_str_len ? build_date_str_len : build_date_size - 1;
-  capabilitiesDescriptor->firmware_build_date[last] = 0;
-
-  // copy revision info in safe manner
-  strncpy(capabilitiesDescriptor->revision_info,
-		  REVISION_INFO,
-		  revision_len);
-  capabilitiesDescriptor->revision_info[revision_len] = 0;
-
+  capabilitiesDescriptor->firmware_build_date_str_idx = X20_BUILD_DATE_STRING_IDX;
+  capabilitiesDescriptor->revision_info_str_idx = X20_REVISION_STRING_IDX;
 
   debug_write_string("capabilitiesDescriptor ");
   debug_write_int(size);
   debug_write_newline();
-  /* Set Application Buffers */
-  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
-//  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+
   return (USBD_OK);
   /* USER CODE END 3 */
 }
@@ -267,13 +246,13 @@ static int8_t CDC_Control(
 
   if( command_request_type == (req->bmRequest & command_request_type))
   {
-	  debug_write_string(" => X20 Command detected"); debug_write_newline();
+	  debug_write_string(" => X20 command"); debug_write_newline();
 
 	  // we probably received a commands
 	  switch(req->bRequest)
 	  {
 		  case X20_GET_CAPABILITIES_DESCRIPTOR:
-			  debug_write_string("   => X20_GET_CAPABILITIES_DESCRIPTOR ");
+			  debug_write_string("   => X20_GET_CAP_DESC ");
 			  debug_write_int(capabilitiesDescriptor->size);
 			  debug_write_newline();
               *responseData = (uint8_t*)capabilitiesDescriptor;
@@ -322,7 +301,7 @@ static int8_t CDC_Control(
   */
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 {
-  debug_write_string("CDC_Transmit_FS ");
+  debug_write_string("CDC_Transmit_FS "); debug_write_newline();
 
   uint8_t result = USBD_OK;
   /* USER CODE BEGIN 7 */

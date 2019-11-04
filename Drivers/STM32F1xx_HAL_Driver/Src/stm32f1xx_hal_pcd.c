@@ -75,7 +75,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 
-#include "debug.h"
+#include "debug_usb.h"
 
 /** @addtogroup STM32F1xx_HAL_Driver
   * @{
@@ -1210,7 +1210,7 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
   __IO uint16_t wIstr = 0;  
   __IO uint16_t wEPVal = 0;
 
-  debug_write_string("*");
+  usb_debug_write_string("*");
   
   /* stay in loop while pending interrupts */
   while (((wIstr = hpcd->Instance->ISTR) & USB_ISTR_CTR) != 0)
@@ -1218,17 +1218,17 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
     /* extract highest priority endpoint number */
     epindex = (uint8_t)(wIstr & USB_ISTR_EP_ID);
     
-    debug_write_string("%");
-    debug_write_int(epindex);
+    usb_debug_write_string("%");
+    usb_debug_write_int(epindex);
 
     if (epindex == 0)
     {
-      debug_write_string("C");
+      usb_debug_write_string("C");
       /* Decode and service control endpoint interrupt */
       /* DIR bit = origin of the interrupt */   
       if ((wIstr & USB_ISTR_DIR) == 0)
       {
-        debug_write_string("0.");
+        usb_debug_write_string("0.");
 
         /* DIR = 0 */
         
@@ -1261,14 +1261,14 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
         
         if ((wEPVal & USB_EP_SETUP) != 0U)
         {
-          debug_write_string("1.");
+          usb_debug_write_string("1.");
 
           /* Get SETUP Packet*/
           ep->xfer_count = PCD_GET_EP_RX_CNT(hpcd->Instance, ep->num);
 
-          debug_write_int(ep->num); debug_write_string(" ");
-          debug_write_int(ep->pmaadress); debug_write_string(" ");
-          debug_write_int(ep->xfer_count); debug_write_string(" ");
+          usb_debug_write_int(ep->num); usb_debug_write_string(" ");
+          usb_debug_write_int(ep->pmaadress); usb_debug_write_string(" ");
+          usb_debug_write_int(ep->xfer_count); usb_debug_write_string(" ");
 
           USB_ReadPMA(hpcd->Instance, (uint8_t*)hpcd->Setup ,ep->pmaadress , ep->xfer_count);       
           /* SETUP bit kept frozen while CTR_RX = 1*/ 
@@ -1280,7 +1280,7 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
         
         else if ((wEPVal & USB_EP_CTR_RX) != 0U)
         {
-          debug_write_string("2.");
+          usb_debug_write_string("2.");
 
           PCD_CLEAR_RX_EP_CTR(hpcd->Instance, PCD_ENDP0);
           /* Get Control Data OUT Packet*/
@@ -1303,7 +1303,7 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
     else
     {
       /* Decode and service non control endpoints interrupt  */
-      debug_write_string("o");
+      usb_debug_write_string("o");
 	  
       /* process related endpoint register */
       wEPVal = PCD_GET_ENDPOINT(hpcd->Instance, epindex);

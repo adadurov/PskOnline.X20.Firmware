@@ -56,6 +56,8 @@
 #include "winusb.h"
 #include "winusb_defs.h"
 #include "debug.h"
+#include "revision.h"
+#include "psk_x20.h"
 
 /* USER CODE END INCLUDE */
 
@@ -452,7 +454,21 @@ uint8_t  *USBD_Sensor_GetUsrStrDescriptor(struct _USBD_HandleTypeDef *pdev ,uint
 
 	  if( MS_OS_DESCRIPTOR_INDEX == index )
 	  {
+		  // '!' is the request code that will be later sent
+		  // by the host to retrieve OS feature descriptors
 		  USBD_GetString((uint8_t*)"MSFT100!", USBD_StrDesc, length);
+		  return USBD_StrDesc;
+	  }
+
+	  if( X20_REVISION_STRING_IDX == index )
+	  {
+		  USBD_GetString((uint8_t*)REVISION_INFO, USBD_StrDesc, length);
+		  return USBD_StrDesc;
+	  }
+
+	  if( X20_BUILD_DATE_STRING_IDX == index )
+	  {
+		  USBD_GetString((uint8_t*)BUILD_DATE, USBD_StrDesc, length);
 		  return USBD_StrDesc;
 	  }
 
