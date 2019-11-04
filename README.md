@@ -40,7 +40,7 @@ The command codes are defined in ./Inc/command.h
 
 ### GetCapabilitiesDescriptor
 
-Retrieves the Capabilities Descriptor (a vendor-defined structure -- see ./Inc/commands.h) containing information 
+Retrieves the Capabilities Descriptor (a vendor-defined structure -- see ./Inc/psk_x20.h) containing information 
 about firmware revision, sampling rate, bits per sample, bytes per waveform transfer etc.
 
 ### UsePpg
@@ -80,7 +80,9 @@ Remember to set the target to software based reset (Project -> Debug Congiruatio
 
 ### Filter for basic USB debugging with Microsoft Message Analyzer
 
-Filter: UsbSpec.UsbDeviceId == "VID_0x0483&PID_0x575D"
+Filter: UsbSpec.UsbDeviceId == "VID_0x0483&PID_0x5760"
+
+Adjust as needed for your own VID and PID.
 
 ### Baud rate settings for debugging console
 
