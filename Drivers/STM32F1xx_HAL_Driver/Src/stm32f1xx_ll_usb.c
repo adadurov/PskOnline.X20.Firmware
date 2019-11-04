@@ -56,7 +56,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 
-#include "debug.h"
+#include "debug_usb.h"
 
 /** @addtogroup STM32F1xx_HAL_Driver
   * @{
@@ -1863,21 +1863,19 @@ HAL_StatusTypeDef USB_EPStartXfer(USB_TypeDef *USBx , USB_EPTypeDef *ep)
     /* configure and validate Tx endpoint */
     if (ep->doublebuffer == 0) 
     {
-        debug_write_string("@.");
+    	usb_debug_write_string("@.");
 
-
-
-        debug_write_int(ep->num); debug_write_string(" ");
-        debug_write_int(ep->pmaadress); debug_write_string(" ");
-        debug_write_int(ep->xfer_count); debug_write_string(" ");
-        debug_write_string("  ...s-buf"); debug_write_newline();
+        usb_debug_write_int(ep->num); usb_debug_write_string(" ");
+        usb_debug_write_int(ep->pmaadress); usb_debug_write_string(" ");
+        usb_debug_write_int(ep->xfer_count); usb_debug_write_string(" ");
+        usb_debug_write_string("  ...s-buf"); usb_debug_write_newline();
 
       USB_WritePMA(USBx, ep->xfer_buff, ep->pmaadress, len);
       PCD_SET_EP_TX_CNT(USBx, ep->num, len);
     }
     else
     {
-      debug_write_string("  ...d-buf"); debug_write_newline();
+      usb_debug_write_string("  ...d-buf"); usb_debug_write_newline();
       /* Write the data to the USB endpoint */
       if (PCD_GET_ENDPOINT(USBx, ep->num)& USB_EP_DTOG_TX)
       {

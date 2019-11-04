@@ -28,8 +28,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_core.h"
 
-#include "debug.h"
-#include "debug_USB.h"
+#include "debug_usb.h"
 
 /** @addtogroup STM32_USBD_DEVICE_LIBRARY
 * @{
@@ -183,7 +182,7 @@ USBD_StatusTypeDef  USBD_RegisterClass(USBD_HandleTypeDef *pdev, USBD_ClassTypeD
   */
 USBD_StatusTypeDef  USBD_Start  (USBD_HandleTypeDef *pdev)
 {
-  debug_write_string("USBD_Start"); debug_write_newline();
+  usb_debug_write_string("USBD_Start"); usb_debug_write_newline();
   
   /* Start the low level driver  */
   USBD_LL_Start(pdev); 
@@ -199,7 +198,7 @@ USBD_StatusTypeDef  USBD_Start  (USBD_HandleTypeDef *pdev)
   */
 USBD_StatusTypeDef  USBD_Stop   (USBD_HandleTypeDef *pdev)
 {
-  debug_write_string("USBD_Stop"); debug_write_newline();
+  usb_debug_write_string("USBD_Stop"); usb_debug_write_newline();
 
   /* Free Class Resources */
   pdev->pClass->DeInit(pdev, pdev->dev_config);  
@@ -232,7 +231,7 @@ USBD_StatusTypeDef  USBD_RunTestMode (USBD_HandleTypeDef  *pdev)
 
 USBD_StatusTypeDef USBD_SetClassConfig(USBD_HandleTypeDef  *pdev, uint8_t cfgidx)
 {
-  debug_write_string("USBD_SetClassConfig"); debug_write_newline();
+  usb_debug_write_string("USBD_SetClassConfig"); usb_debug_write_newline();
 
   USBD_StatusTypeDef   ret = USBD_FAIL;
   
@@ -256,7 +255,7 @@ USBD_StatusTypeDef USBD_SetClassConfig(USBD_HandleTypeDef  *pdev, uint8_t cfgidx
 */
 USBD_StatusTypeDef USBD_ClrClassConfig(USBD_HandleTypeDef  *pdev, uint8_t cfgidx)
 {
-  debug_write_string("USBD_ClrClassConfig"); debug_write_newline();
+  usb_debug_write_string("USBD_ClrClassConfig"); usb_debug_write_newline();
   /* Clear configuration  and De-initialize the Class process*/
   pdev->pClass->DeInit(pdev, cfgidx);  
   return USBD_OK;
@@ -273,7 +272,7 @@ USBD_StatusTypeDef USBD_LL_SetupStage(USBD_HandleTypeDef *pdev, uint8_t *psetup)
 {
   USBD_ParseSetupRequest(&pdev->request, psetup);
   
-  debug_usb_setup_trace("USBD_LL_SetupStage", &pdev->request);
+  usb_debug_usb_setup_trace("USBD_LL_SetupStage", &pdev->request);
 
   pdev->ep0_state = USBD_EP0_SETUP;
   pdev->ep0_data_len = pdev->request.wLength;
@@ -410,7 +409,7 @@ USBD_StatusTypeDef USBD_LL_DataInStage(USBD_HandleTypeDef *pdev ,uint8_t epnum, 
   else if((pdev->pClass->DataIn != NULL)&& 
           (pdev->dev_state == USBD_STATE_CONFIGURED))
   {
-    debug_write_string("^");
+    usb_debug_write_string("^");
     pdev->pClass->DataIn(pdev, epnum); 
   }  
   return USBD_OK;

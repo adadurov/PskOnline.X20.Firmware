@@ -28,7 +28,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_ctlreq.h"
 #include "usbd_ioreq.h"
-#include "debug.h"
+#include "debug_usb.h"
 #include "winusb.h"
 
 
@@ -125,7 +125,7 @@ USBD_StatusTypeDef  USBD_StdDevReq (USBD_HandleTypeDef *pdev , USBD_SetupReqType
 {
   USBD_StatusTypeDef ret = USBD_OK;
 
-  debug_write_string("USBD_StdDevReq"); debug_write_newline();
+  usb_debug_write_string("USBD_StdDevReq"); usb_debug_write_newline();
 
   switch (req->bRequest) 
   {
@@ -163,8 +163,8 @@ USBD_StatusTypeDef  USBD_StdDevReq (USBD_HandleTypeDef *pdev , USBD_SetupReqType
     break;
     
   default:
-	debug_write_string("USBD_CtlError");
-	debug_write_newline();
+	usb_debug_write_string("USBD_CtlError");
+	usb_debug_write_newline();
 
     USBD_CtlError(pdev , req);
     break;
@@ -183,7 +183,7 @@ USBD_StatusTypeDef  USBD_StdDevReq (USBD_HandleTypeDef *pdev , USBD_SetupReqType
 USBD_StatusTypeDef  USBD_StdItfReq (USBD_HandleTypeDef *pdev , USBD_SetupReqTypedef  *req)
 {
   USBD_StatusTypeDef ret = USBD_OK; 
-  debug_usb_setup_trace("USBD_StdItfReq", req);
+  usb_debug_usb_setup_trace("USBD_StdItfReq", req);
   
   if (WINUSB_MS_VENDOR_CODE == req->bRequest)
   {
@@ -355,9 +355,9 @@ static void USBD_GetDescriptor(USBD_HandleTypeDef *pdev ,
   uint16_t len;
   uint8_t *pbuf;
   
-  debug_write_string("USBD_GetDescriptor ");
-  debug_write_int(req->wValue >> 8);
-  debug_write_newline();
+  usb_debug_write_string("USBD_GetDescriptor ");
+  usb_debug_write_int(req->wValue >> 8);
+  usb_debug_write_newline();
     
   switch (req->wValue >> 8)
   { 
@@ -553,16 +553,16 @@ static void USBD_SetConfig(USBD_HandleTypeDef *pdev ,
   
   cfgidx = (uint8_t)(req->wValue);                 
 
-  debug_write_string("USBD_SetConfig ");
-  debug_write_int(cfgidx);
-  debug_write_newline();
+  usb_debug_write_string("USBD_SetConfig ");
+  usb_debug_write_int(cfgidx);
+  usb_debug_write_newline();
   
   if (cfgidx > USBD_MAX_NUM_CONFIGURATION ) 
   {            
      USBD_CtlError(pdev , req);
 
-     debug_write_string("  USBD_SetConfig => error");
-     debug_write_newline();
+     usb_debug_write_string("  USBD_SetConfig => error");
+     usb_debug_write_newline();
   } 
   else 
   {
@@ -599,7 +599,7 @@ static void USBD_SetConfig(USBD_HandleTypeDef *pdev ,
       {
         /* Clear old configuration */
         USBD_ClrClassConfig(pdev , pdev->dev_config);
-        debug_write_string("resetting configuration..."); debug_write_newline();
+        usb_debug_write_string("resetting configuration..."); usb_debug_write_newline();
         
         /* set new configuration */
         pdev->dev_config = cfgidx;
@@ -619,15 +619,15 @@ static void USBD_SetConfig(USBD_HandleTypeDef *pdev ,
     default:					
        USBD_CtlError(pdev , req);
 
-       debug_write_string("  USBD_SetConfig => error (default)");
-       debug_write_newline();
+       usb_debug_write_string("  USBD_SetConfig => error (default)");
+       usb_debug_write_newline();
 
       break;
     }
   }
 
-  debug_write_string("  USBD_SetConfig => done");
-  debug_write_newline();
+  usb_debug_write_string("  USBD_SetConfig => done");
+  usb_debug_write_newline();
 
 }
 
@@ -641,7 +641,7 @@ static void USBD_SetConfig(USBD_HandleTypeDef *pdev ,
 static void USBD_GetConfig(USBD_HandleTypeDef *pdev , 
                            USBD_SetupReqTypedef *req)
 {
-  debug_write_string("USBD_GetConfig ");
+  usb_debug_write_string("USBD_GetConfig ");
 
   if (req->wLength != 1) 
   {                   
@@ -683,10 +683,10 @@ static void USBD_GetStatus(USBD_HandleTypeDef *pdev ,
                            USBD_SetupReqTypedef *req)
 {
   
-  debug_write_string("USBD_ClrFeature ");
-  debug_write_int(pdev->dev_config_status & 0xFF );
-  debug_write_int((pdev->dev_config_status >> 8) & 0xFF);
-  debug_write_newline();
+  usb_debug_write_string("USBD_ClrFeature ");
+  usb_debug_write_int(pdev->dev_config_status & 0xFF );
+  usb_debug_write_int((pdev->dev_config_status >> 8) & 0xFF);
+  usb_debug_write_newline();
 
   switch (pdev->dev_state) 
   {
@@ -726,7 +726,7 @@ static void USBD_GetStatus(USBD_HandleTypeDef *pdev ,
 static void USBD_SetFeature(USBD_HandleTypeDef *pdev , 
                             USBD_SetupReqTypedef *req)
 {
-  debug_write_string("USBD_SetFeature"); debug_write_newline();
+  usb_debug_write_string("USBD_SetFeature"); usb_debug_write_newline();
 
   if (req->wValue == USB_FEATURE_REMOTE_WAKEUP)
   {
@@ -748,7 +748,7 @@ static void USBD_SetFeature(USBD_HandleTypeDef *pdev ,
 static void USBD_ClrFeature(USBD_HandleTypeDef *pdev , 
                             USBD_SetupReqTypedef *req)
 {
-  debug_write_string("USBD_ClrFeature"); debug_write_newline();
+  usb_debug_write_string("USBD_ClrFeature"); usb_debug_write_newline();
 
   switch (pdev->dev_state)
   {
@@ -797,7 +797,7 @@ void USBD_ParseSetupRequest(USBD_SetupReqTypedef *req, uint8_t *pdata)
 void USBD_CtlError( USBD_HandleTypeDef *pdev ,
                             USBD_SetupReqTypedef *req)
 {
-  debug_write_string("USBD_CtlError"); debug_write_newline();
+  usb_debug_write_string("USBD_CtlError"); usb_debug_write_newline();
 
   USBD_LL_StallEP(pdev , 0x80);
   USBD_LL_StallEP(pdev , 0);

@@ -63,7 +63,7 @@
 #include "usbd_desc.h"
 #include "usbd_ctlreq.h"
 
-#include "debug.h"
+#include "debug_usb.h"
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
   * @{
@@ -229,7 +229,7 @@ __ALIGN_BEGIN static uint8_t USBD_Sensor_CfgDesc[PHYSIO_SENSOR_CONFIG_DESC_SIZE]
 static uint8_t  USBD_CDC_Init (USBD_HandleTypeDef *pdev, 
                                uint8_t cfgidx)
 {
-  debug_write_string("USBD_CDC_Init"); debug_write_newline();
+  usb_debug_write_string("USBD_CDC_Init"); usb_debug_write_newline();
 
   uint8_t ret = 0;
   USBD_CDC_HandleTypeDef   *hcdc;
@@ -319,7 +319,7 @@ static uint8_t  USBD_CDC_Init (USBD_HandleTypeDef *pdev,
 static uint8_t  USBD_CDC_DeInit (USBD_HandleTypeDef *pdev, 
                                  uint8_t cfgidx)
 {
-  debug_write_string("USBD_CDC_DeInit"); debug_write_newline();
+  usb_debug_write_string("USBD_CDC_DeInit"); usb_debug_write_newline();
 
   uint8_t ret = 0;
   
@@ -347,7 +347,7 @@ static uint8_t  USBD_CDC_DeInit (USBD_HandleTypeDef *pdev,
 static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev, 
                                 USBD_SetupReqTypedef *req)
 {
-  debug_write_string("USBD_CDC_Setup "); debug_write_newline();
+  usb_debug_write_string("USBD_CDC_Setup "); usb_debug_write_newline();
 
   USBD_CDC_HandleTypeDef   *hcdc = (USBD_CDC_HandleTypeDef*) pdev->pClassData;
   static uint8_t ifalt = 0;
@@ -364,7 +364,7 @@ static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev,
 
       if (req->bmRequest & 0x80)
       {
-    	debug_write_string("in ");
+    	usb_debug_write_string("in ");
     	USBD_CDC_ItfTypeDef *interface = ((USBD_CDC_ItfTypeDef *)pdev->pUserData);
         uint8_t status = interface->Control(req,
         									&dataPtr,
@@ -383,9 +383,9 @@ static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev,
       }
       else
       {
-      	debug_write_string("out ");
-    	debug_write_string("Unexpected! setup request with OUT data stage");
-    	debug_write_newline();
+      	usb_debug_write_string("out ");
+    	usb_debug_write_string("Unexpected! setup request with OUT data stage");
+    	usb_debug_write_newline();
         return USBD_FAIL;
       }
       
@@ -393,7 +393,7 @@ static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev,
     else
     {
       // no, there is no data stage
-      debug_write_string("nd ");
+      usb_debug_write_string("nd ");
       ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(req, 0, 0);
     }
     break;
@@ -402,7 +402,7 @@ static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev,
     switch (req->bRequest)
     {      
     case USB_REQ_GET_INTERFACE :
-      debug_write_string("USB_REQ_GET_INTERFACE"); debug_write_newline();
+      usb_debug_write_string("USB_REQ_GET_INTERFACE"); usb_debug_write_newline();
       USBD_CtlSendData (pdev,
                         &ifalt,
                         1);
@@ -428,21 +428,21 @@ static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev,
   */
 static uint8_t  USBD_CDC_DataIn (USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
-  debug_write_string("USBD_CDC_DataIn"); debug_write_newline();
+  usb_debug_write_string("USBD_CDC_DataIn"); usb_debug_write_newline();
 
   USBD_CDC_HandleTypeDef   *hcdc = (USBD_CDC_HandleTypeDef*) pdev->pClassData;
   
   if(pdev->pClassData != NULL)
   {
 
-    debug_write_string("USBD_CDC_DataIn => OK"); debug_write_newline();
+    usb_debug_write_string("USBD_CDC_DataIn => OK"); usb_debug_write_newline();
     hcdc->TxState = 0;
 
     return USBD_OK;
   }
   else
   {
-    debug_write_string("USBD_CDC_DataIn => FAIL"); debug_write_newline();
+    usb_debug_write_string("USBD_CDC_DataIn => FAIL"); usb_debug_write_newline();
     return USBD_FAIL;
   }
 }
@@ -458,7 +458,7 @@ static uint8_t  USBD_CDC_DataOut (USBD_HandleTypeDef *pdev, uint8_t epnum)
 {      
   USBD_CDC_HandleTypeDef   *hcdc = (USBD_CDC_HandleTypeDef*) pdev->pClassData;
   
-  debug_write_string("Unexpected! USBD_CDC_DataOut"); debug_write_newline();
+  usb_debug_write_string("Unexpected! USBD_CDC_DataOut"); usb_debug_write_newline();
 
   /* Get the received data length */
 //  hcdc->RxLength = USBD_LL_GetRxDataSize (pdev, epnum);
@@ -493,7 +493,7 @@ static uint8_t  USBD_CDC_EP0_RxReady (USBD_HandleTypeDef *pdev)
   
 //  if((pdev->pUserData != NULL) && (hcdc->CmdOpCode != 0xFF))
 //  {
-  	debug_write_string("Unexpected! in USBD_CDC_EP0_RxReady"); debug_write_newline();
+  	usb_debug_write_string("Unexpected! in USBD_CDC_EP0_RxReady"); usb_debug_write_newline();
 //
 //  	((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(hcdc->CmdOpCode,
 //                                                      (uint8_t *)hcdc->data,
@@ -513,21 +513,21 @@ static uint8_t  USBD_CDC_EP0_RxReady (USBD_HandleTypeDef *pdev)
  */
 static uint8_t *USBD_Sensor_GetCfgDesc_FS(uint16_t *length)
 {
-	debug_write_string("USBD_Sensor_GetCfgDesc_FS => FULL SPEED"); debug_write_newline();
+    usb_debug_write_string("USBD_Sensor_GetCfgDesc_FS => FULL SPEED"); usb_debug_write_newline();
     *length = sizeof(USBD_Sensor_CfgDesc);
     return USBD_Sensor_CfgDesc;
 }
 
 static uint8_t *USBD_Sensor_GetCfgDesc_HS(uint16_t *length)
 {
-	debug_write_string("USBD_Sensor_GetCfgDesc_HS => HIGH SPEED"); debug_write_newline();
+    usb_debug_write_string("USBD_Sensor_GetCfgDesc_HS => HIGH SPEED"); usb_debug_write_newline();
     *length = sizeof(USBD_Sensor_CfgDesc);
     return USBD_Sensor_CfgDesc;
 }
 
 static uint8_t *USBD_Sensor_GetCfgDesc_Other(uint16_t *length)
 {
-	debug_write_string("USBD_Sensor_GetCfgDesc_Other => OTHER SPEED"); debug_write_newline();
+    usb_debug_write_string("USBD_Sensor_GetCfgDesc_Other => OTHER SPEED"); usb_debug_write_newline();
     *length = sizeof(USBD_Sensor_CfgDesc);
     return USBD_Sensor_CfgDesc;
 }
@@ -541,7 +541,7 @@ static uint8_t *USBD_Sensor_GetCfgDesc_Other(uint16_t *length)
 */
 uint8_t  *USBD_CDC_GetDeviceQualifierDescriptor (uint16_t *length)
 {
-  debug_write_string("USBD_CDC_GetDeviceQualifierDescriptor"); debug_write_newline();
+  usb_debug_write_string("USBD_CDC_GetDeviceQualifierDescriptor"); usb_debug_write_newline();
   *length = sizeof (USBD_CDC_DeviceQualifierDesc);
   return USBD_CDC_DeviceQualifierDesc;
 }
@@ -555,7 +555,7 @@ uint8_t  *USBD_CDC_GetDeviceQualifierDescriptor (uint16_t *length)
 uint8_t  USBD_CDC_RegisterInterface  (USBD_HandleTypeDef   *pdev, 
                                       USBD_CDC_ItfTypeDef *fops)
 {
-  debug_write_string("USBD_CDC_RegisterInterface"); debug_write_newline();
+  usb_debug_write_string("USBD_CDC_RegisterInterface"); usb_debug_write_newline();
 
   uint8_t  ret = USBD_FAIL;
   
@@ -578,7 +578,7 @@ uint8_t  USBD_CDC_SetTxBuffer  (USBD_HandleTypeDef   *pdev,
                                 uint8_t  *pbuff,
                                 uint16_t length)
 {
-  debug_write_string("USBD_CDC_SetTxBuffer "); debug_write_int(pbuff); debug_write_int(length);debug_write_newline();
+  usb_debug_write_string("USBD_CDC_SetTxBuffer "); usb_debug_write_int(pbuff); usb_debug_write_int(length);usb_debug_write_newline();
 
   USBD_CDC_HandleTypeDef   *hcdc = (USBD_CDC_HandleTypeDef*) pdev->pClassData;
   
@@ -602,7 +602,7 @@ uint8_t  USBD_CDC_SetRxBuffer  (USBD_HandleTypeDef   *pdev,
 //
 //  hcdc->RxBuffer = pbuff;
 //  return USBD_OK;
-  debug_write_string("Unexpected: USBD_CDC_SetRxBuffer"); debug_write_newline();
+  usb_debug_write_string("Unexpected: USBD_CDC_SetRxBuffer"); usb_debug_write_newline();
   
   return USBD_FAIL;
 }
@@ -631,18 +631,18 @@ uint8_t  USBD_CDC_TransmitPacket(USBD_HandleTypeDef *pdev)
                        hcdc->TxBuffer,
                        hcdc->TxLength);
       
-      debug_write_string("  USBD_CDC_TransmitPacket => OK"); debug_write_newline();
+      usb_debug_write_string("  USBD_CDC_TransmitPacket => OK"); usb_debug_write_newline();
       return USBD_OK;
     }
     else
     {
-      debug_write_string("  USBD_CDC_TransmitPacket => BUSY"); debug_write_newline();
+      usb_debug_write_string("  USBD_CDC_TransmitPacket => BUSY"); usb_debug_write_newline();
       return USBD_BUSY;
     }
   }
   else
   {
-    debug_write_string("  USBD_CDC_TransmitPacket => FAILED"); debug_write_newline();
+    usb_debug_write_string("  USBD_CDC_TransmitPacket => FAILED"); usb_debug_write_newline();
     return USBD_FAIL;
   }
 }
@@ -656,7 +656,7 @@ uint8_t  USBD_CDC_TransmitPacket(USBD_HandleTypeDef *pdev)
   */
 uint8_t  USBD_CDC_ReceivePacket(USBD_HandleTypeDef *pdev)
 {
-  debug_write_string("Unexpected! in USBD_CDC_ReceivePacket"); debug_write_newline();
+  usb_debug_write_string("Unexpected! in USBD_CDC_ReceivePacket"); usb_debug_write_newline();
   return USBD_FAIL;
 
 //  USBD_CDC_HandleTypeDef   *hcdc = (USBD_CDC_HandleTypeDef*) pdev->pClassData;
