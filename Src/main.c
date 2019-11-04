@@ -54,6 +54,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "revision.h"
 #include "usbd_cdc_if.h"
 #include "max30102.h"
 #include "debug.h"
@@ -145,8 +146,8 @@ int main(void)
   /* USER CODE BEGIN Init */
   uint16_t usb_package_size = sizeof(usb_package) + TR_BUF_SAMPLES * sizeof(TR_BUF_SAMPLE_T) + 16;
 
-  sensorState.bitsPerSample = 24;
-  sensorState.samplingRate = 800;
+  sensorState.bitsPerSample = 18;
+  sensorState.samplingRate = 400;
   sensorState.physioTransferSize = usb_package_size;
 
   sensorState.started = 0;
@@ -186,9 +187,9 @@ int main(void)
   debug_write_string("\r\nPSK-X20 Initializing.................");
   debug_write_newline();
 
-  debug_write_string("  Built on:  ");
-  debug_write_string(__DATE__ " " __TIME__);
-  debug_write_newline();
+  debug_write_string("  Version:          ");  debug_write_string(REVISION_INFO);  debug_write_newline();
+
+  debug_write_string("  Built on:         ");  debug_write_string(__DATE__ " " __TIME__);  debug_write_newline();
 
   ring_buffer *pRingBuf = ring_buffer_alloc(RING_BUFFER_SAMPLES);
   if (0 == pRingBuf)
@@ -232,7 +233,7 @@ int main(void)
 
   // needs a buffer of at least 15 bytes
   get_uid_str(serialNumber);
-  debug_write_string("  STM32 UUID: ");
+  debug_write_string("  STM32 UUID:       ");
   debug_write_string(serialNumber);
   debug_write_newline();
 
@@ -258,29 +259,30 @@ int main(void)
 	  	ExecutePendingCommands(pRingBuf);
 
 	    /* USER CODE BEGIN 3 */
-	      availableSamples = MAX30102_GetNumSamplesInFifo(&hi2c2) - 1;
+	      availableSamples = MAX30102_GetNumSamplesInFifo(&hi2c2);
+
+		  if (sensorState.started != 0 && availableSamples > 0)
+		  {
+              debug_write_string("==> Z: "); debug_write_int(availableSamples); debug_write_newline();
+		  }
 
 	      for (int16_t i = 0; i < availableSamples; ++i)
 	      {
 	          MAX30102_ReadFifo(&hi2c2, sample, 6);
-	          uint32_t IR = (sample[3] << 16) + (sample[4] << 8) + sample[5];
+	          uint32_t IR = (sample[3] << 16) & 0x03 + (sample[4] << 8) + sample[5];
 
 			  if (sensorState.started != 0)
 			  {
 
 				  if (sensorState.usingPpg)
 				  {
-					  debug_write_string(" IR: ");
-					  debug_write_int(IR);
-					  debug_write_newline();
+					  debug_write_string(" IR: "); debug_write_int(IR); debug_write_newline();
 					  ring_buffer_add_sample(pRingBuf, IR);
 
 				  }
 				  else
 				  {
-          	        debug_write_string(" RAMP: ");
-      	            debug_write_int(ramp);
-  	                debug_write_newline();
+          	        debug_write_string(" RAMP: "); debug_write_int(ramp); debug_write_newline();
                     ring_buffer_add_sample(pRingBuf, ++ramp);
 				  }
 			  }
@@ -293,30 +295,36 @@ int main(void)
 	      	  continue;
 	      }
 
-		  uint16_t num_samples = TR_BUF_SAMPLES;
+		  uint16_t required_samples = TR_BUF_SAMPLES;
 		  uint16_t ring_buffer_samples = ring_buffer_get_count(pRingBuf);
-	      if (ring_buffer_samples < num_samples)
+	      if (ring_buffer_samples < required_samples)
 	      {
 //	          debug_write_string("e");
 	      }
 	      else
 	      {
+
 	    	  // copy samples from the ring buffer to the transmit buffer
-	    	  for( uint16_t i = 0; i < num_samples; ++i)
+	    	  for( uint16_t i = 0; i < required_samples; ++i)
 	    	  {
 	    		  transmit_buffer->samples[i] = ring_buffer_remove_sample(pRingBuf);
 	    	  }
 	          transmit_buffer->package_number++;
 	          transmit_buffer->ring_buffer_data_count = ring_buffer_samples;
-	          transmit_buffer->num_samples = num_samples;
+	          transmit_buffer->num_samples = required_samples;
 	          transmit_buffer->ring_buffer_overflows = pRingBuf->overflows;
 	          pRingBuf->overflows = 0;
 
 	          uint16_t len = sizeof(usb_package) + transmit_buffer->num_samples * sizeof(TR_BUF_SAMPLE_T);
 
 	          int result = -1;
+
               // transfer the package to the USB Host
+	          int start_tr = HAL_GetTick();
 	          result = CDC_Transmit_FS((uint8_t*)transmit_buffer, len);
+
+	          int stop_tr = HAL_GetTick();
+	          debug_write_string("TR_TIME: "); debug_write_int(stop_tr - start_tr); debug_write_newline();
 	      }
 
   }
@@ -533,13 +541,13 @@ void ExecutePendingCommands(ring_buffer *buffer)
 		int startPriority = sensorState.startTicks > sensorState.stopTicks ? 1 : 0;
 		if (startPriority != 0)
 		{
-			debug_write_string("Executed START with priority.");
+			debug_write_string("Executed START with priority."); debug_write_newline();
 			ring_buffer_clear(buffer);
 			sensorState.started = 1;
 		}
 		else
 		{
-			debug_write_string("Executed STOP with priority.");
+			debug_write_string("Executed STOP with priority."); debug_write_newline();
 			sensorState.started = 0;
 		}
 		CleanUpPendingCommands();
@@ -547,7 +555,7 @@ void ExecutePendingCommands(ring_buffer *buffer)
 	}
 	if (sensorState.startFlipped != 0)
 	{
-        debug_write_string("Executed START.");
+        debug_write_string("Executed START."); debug_write_newline();
         ring_buffer_clear(buffer);
         sensorState.started = 1;
         CleanUpPendingCommands();
@@ -555,7 +563,7 @@ void ExecutePendingCommands(ring_buffer *buffer)
 	}
 	if (sensorState.stopFlipped != 0)
 	{
-        debug_write_string("Executed STOP.");
+        debug_write_string("Executed STOP."); debug_write_newline();
         sensorState.started = 0;
         CleanUpPendingCommands();
         return;
@@ -572,6 +580,7 @@ void CleanUpPendingCommands()
 
 void Physio_Start()
 {
+  MAX30102_ResetFIFO(&hi2c2);
   sensorState.startFlipped = 1;
   sensorState.startTicks = HAL_GetTick();
 }

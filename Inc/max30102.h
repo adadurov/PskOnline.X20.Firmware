@@ -1,8 +1,8 @@
 /*
  * max30102.h
  *
- *  Created on: 24 мар. 2019 г.
- *      Author: Лёша
+ *  Created on: 24 пїЅпїЅпїЅ. 2019 пїЅ.
+ *      Author: ЛёпїЅпїЅ
  */
 
 #ifndef MAX30102_H_
@@ -49,7 +49,7 @@ HAL_StatusTypeDef MAX30102_ReadFifo(I2C_HandleTypeDef *_hi2c, uint8_t* buffer, u
 HAL_StatusTypeDef MAX30102_Init(I2C_HandleTypeDef *_hi2c);
 uint8_t MAX30102_GetPartId(I2C_HandleTypeDef *_hi2c);
 
-void MAX30102_ResetFIFO(I2C_HandleTypeDef *_hi2c);
+HAL_StatusTypeDef MAX30102_ResetFIFO(I2C_HandleTypeDef *_hi2c);
 int16_t MAX30102_GetNumSamplesInFifo(I2C_HandleTypeDef *_hi2c);
 
 #endif /* MAX30102_H_ */

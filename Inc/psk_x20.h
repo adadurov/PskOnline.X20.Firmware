@@ -22,17 +22,11 @@ typedef struct
 	// 8 Bytes per transfer over PHYSIO_EPIN_ADDR endpoint
 	uint16_t    bytes_per_physio_transfer;
 
-	// 10 A textual description of the device's firmware version
-	//    A zero-terminated ASCII string containing only numbers,
-	//    Latin letters, dots and parentheses.
-	//    For example: '1.2.3-alpha-29ab2fd9'
-	uint8_t     firmware_build_date[30];
+	// 10 Index of the string descriptor representing the device's firmware build date
+	uint16_t    firmware_build_date_str_idx;
 
-	// 40 A textual description of the device's firmware version
-	//    A zero-terminated ASCII string containing only numbers,
-	//    Latin letters, dots and parentheses.
-	//    For example: '1.2.3-alpha-29ab2fd9'
-	uint8_t     revision_info[];
+	// 12 Index of the string descriptor representing the device's firmware version
+	uint16_t    revision_info_str_idx;
 
 }  __attribute__((packed))
 x20_capabilities_descriptor;
@@ -72,6 +66,13 @@ enum x20_commands {
   X20_START = 0x50,
 
   X20_STOP = 0x51
+};
+
+
+enum x20_strings {
+  X20_REVISION_STRING_IDX = 0x41,
+
+  X20_BUILD_DATE_STRING_IDX = 0x42
 };
 
 #endif
