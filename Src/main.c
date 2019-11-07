@@ -127,6 +127,24 @@ char serialNumber[20];
 
 WAVEFORM_SENSOR_STATE sensorState;
 
+void ConfigureSensor(I2C_HandleTypeDef* phi2c2) {
+  HAL_StatusTypeDef max30102_status = MAX30102_Init(phi2c2);
+  trace_write_string("  MAX30102 part_id:   ");
+
+  if (HAL_OK == max30102_status)
+  {
+	  uint8_t partId = MAX30102_GetPartId(phi2c2);
+	  trace_write_int(partId);
+	  trace_write_newline();
+  }
+  else
+  {
+	  trace_write_string("    Failed to configure. Status: ");
+	  trace_write_int(max30102_status);
+	  trace_write_newline();
+  }
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -174,7 +192,6 @@ int main(void)
 
   /* USER CODE END SysInit */
 
-
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM4_Init();
@@ -183,29 +200,29 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
-  debug_write_init(&huart2);
-  debug_write_newline(); debug_write_newline(); debug_write_newline();
-  debug_write_string("\r\nPSK-X20 Initializing.................");
-  debug_write_newline();
+  trace_write_init(&huart2);
+  trace_write_string("\r\n\r\n\r\n");
+  trace_write_string("PSK-X20 Initializing.................");
+  trace_write_newline();
 
-  debug_write_string("  Version:          ");  debug_write_string(REVISION_INFO);  debug_write_newline();
+  trace_write_string("  Version:            ");  trace_write_string(REVISION_INFO);  trace_write_newline();
 
-  debug_write_string("  Built on:         ");  debug_write_string(BUILD_DATE);  debug_write_newline();
+  trace_write_string("  Built on:           ");  trace_write_string(BUILD_DATE);  trace_write_newline();
 
   ring_buffer *pRingBuf = ring_buffer_alloc(RING_BUFFER_SAMPLES);
   if (0 == pRingBuf)
   {
-    debug_write_string(".................failed to allocate ring buffer for ");
-    debug_write_int(RING_BUFFER_SAMPLES);
-    debug_write_newline();
+    trace_write_string(".................failed to allocate ring buffer for ");
+    trace_write_int(RING_BUFFER_SAMPLES);
+    trace_write_newline();
     Error_Handler();
   }
   usb_package *transmit_buffer = (usb_package*)malloc(usb_package_size);
   if (0 == transmit_buffer)
   {
-    debug_write_string(".................failed to allocate transmit_buffer of ");
-    debug_write_int(usb_package_size);
-    debug_write_newline();
+    trace_write_string(".................failed to allocate transmit_buffer of ");
+    trace_write_int(usb_package_size);
+    trace_write_newline();
     Error_Handler();
   }
 
@@ -213,39 +230,29 @@ int main(void)
   transmit_buffer = (usb_package *)(((long long int)transmit_buffer) & 0xFFFFFFFFC);
   transmit_buffer->package_number = 0;
 
-  HAL_StatusTypeDef max30102_status = MAX30102_Init(&hi2c2);
+  //
+  ConfigureSensor(&hi2c2);
 
-  if (HAL_OK == max30102_status)
-  {
-	  uint8_t partId = MAX30102_GetPartId(&hi2c2);
-	  debug_write_string("  MAX30102 part_id:     ");
-	  debug_write_int(partId);
-	  debug_write_newline();
-  }
-  else
-  {
-	  debug_write_string("    Failed to initialize MAX30102 chip.");
-	  debug_write_newline();
-  }
-
-  debug_write_string("  Stack started at:     ");
-  debug_write_int(USB_PACKAGE_SIZE);
-  debug_write_newline();
+  trace_write_string("  Stack started at:   ");
+  trace_write_int(&usb_package_size);
+  trace_write_newline();
 
   // needs a buffer of at least 15 bytes
   get_uid_str(serialNumber);
-  debug_write_string("  STM32 UUID:       ");
-  debug_write_string(serialNumber);
-  debug_write_newline();
+  trace_write_string("  STM32 UUID:         ");
+  trace_write_string(serialNumber);
+  trace_write_newline();
 
-  debug_write_string("\r\nPSK-X20 Initialized, ready to rock!\r\n");
+  // align to 4 bytes
+  transmit_buffer = (usb_package *)(((long long int)transmit_buffer) & 0xFFFFFFFFC);
+  transmit_buffer->package_number = 0;
 
   HAL_TIM_Base_Start_IT(&htim4);
+  trace_write_string("\r\nPSK-X20 Initialized, ready to rock!\r\n\r\n");
 
   uint8_t sample[6];
   int16_t availableSamples;
   uint32_t ramp = 0;
-
 
   /* USER CODE END 2 */
 
@@ -270,7 +277,7 @@ int main(void)
 	      for (int16_t i = 0; i < availableSamples; ++i)
 	      {
 	          MAX30102_ReadFifo(&hi2c2, sample, 6);
-	          uint32_t IR = (sample[3] << 16) & 0x03 + (sample[4] << 8) + sample[5];
+	          uint32_t IR = ((sample[3] << 16) & 0x03) + (sample[4] << 8) + sample[5];
 
 			  if (sensorState.started != 0)
 			  {
@@ -298,11 +305,7 @@ int main(void)
 
 		  uint16_t required_samples = TR_BUF_SAMPLES;
 		  uint16_t ring_buffer_samples = ring_buffer_get_count(pRingBuf);
-	      if (ring_buffer_samples < required_samples)
-	      {
-//	          debug_write_string("e");
-	      }
-	      else
+	      if (ring_buffer_samples >= required_samples)
 	      {
 
 	    	  // copy samples from the ring buffer to the transmit buffer
@@ -318,18 +321,16 @@ int main(void)
 
 	          uint16_t len = sizeof(usb_package) + transmit_buffer->num_samples * sizeof(TR_BUF_SAMPLE_T);
 
-	          int result = -1;
-
               // transfer the package to the USB Host
 	          int start_tr = HAL_GetTick();
-	          result = CDC_Transmit_FS((uint8_t*)transmit_buffer, len);
+	          int result = CDC_Transmit_FS((uint8_t*)transmit_buffer, len);
 
 	          int stop_tr = HAL_GetTick();
 	          debug_write_string("TR_TIME: "); debug_write_int(stop_tr - start_tr); debug_write_newline();
 	      }
 
-  }
-  /* USER CODE END 3 */
+    }
+    /* USER CODE END 3 */
 }
 
 /**
@@ -392,7 +393,7 @@ static void MX_I2C2_Init(void)
 
   /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
-  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.ClockSpeed = 200000;
   hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c2.Init.OwnAddress1 = 0;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -581,7 +582,8 @@ void CleanUpPendingCommands()
 
 void Physio_Start()
 {
-  MAX30102_ResetFIFO(&hi2c2);
+  HAL_StatusTypeDef max30102_status = MAX30102_Init(&hi2c2);
+
   sensorState.startFlipped = 1;
   sensorState.startTicks = HAL_GetTick();
 }
