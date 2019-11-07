@@ -129,19 +129,19 @@ WAVEFORM_SENSOR_STATE sensorState;
 
 void ConfigureSensor(I2C_HandleTypeDef* phi2c2) {
   HAL_StatusTypeDef max30102_status = MAX30102_Init(phi2c2);
-  debug_write_string("  MAX30102 part_id:   ");
+  trace_write_string("  MAX30102 part_id:   ");
 
   if (HAL_OK == max30102_status)
   {
 	  uint8_t partId = MAX30102_GetPartId(phi2c2);
-	  debug_write_int(partId);
-	  debug_write_newline();
+	  trace_write_int(partId);
+	  trace_write_newline();
   }
   else
   {
-	  debug_write_string("    Failed to configure. Status: ");
-	  debug_write_int(max30102_status);
-	  debug_write_newline();
+	  trace_write_string("    Failed to configure. Status: ");
+	  trace_write_int(max30102_status);
+	  trace_write_newline();
   }
 }
 
@@ -200,29 +200,29 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
-  debug_write_init(&huart2);
-  debug_write_newline(); debug_write_newline(); debug_write_newline();
-  debug_write_string("\r\nPSK-X20 Initializing.................");
-  debug_write_newline();
+  trace_write_init(&huart2);
+  trace_write_string("\r\n\r\n\r\n");
+  trace_write_string("PSK-X20 Initializing.................");
+  trace_write_newline();
 
-  debug_write_string("  Version:            ");  debug_write_string(REVISION_INFO);  debug_write_newline();
+  trace_write_string("  Version:            ");  trace_write_string(REVISION_INFO);  trace_write_newline();
 
-  debug_write_string("  Built on:           ");  debug_write_string(BUILD_DATE);  debug_write_newline();
+  trace_write_string("  Built on:           ");  trace_write_string(BUILD_DATE);  trace_write_newline();
 
   ring_buffer *pRingBuf = ring_buffer_alloc(RING_BUFFER_SAMPLES);
   if (0 == pRingBuf)
   {
-    debug_write_string(".................failed to allocate ring buffer for ");
-    debug_write_int(RING_BUFFER_SAMPLES);
-    debug_write_newline();
+    trace_write_string(".................failed to allocate ring buffer for ");
+    trace_write_int(RING_BUFFER_SAMPLES);
+    trace_write_newline();
     Error_Handler();
   }
   usb_package *transmit_buffer = (usb_package*)malloc(usb_package_size);
   if (0 == transmit_buffer)
   {
-    debug_write_string(".................failed to allocate transmit_buffer of ");
-    debug_write_int(usb_package_size);
-    debug_write_newline();
+    trace_write_string(".................failed to allocate transmit_buffer of ");
+    trace_write_int(usb_package_size);
+    trace_write_newline();
     Error_Handler();
   }
 
@@ -233,22 +233,22 @@ int main(void)
   //
   ConfigureSensor(&hi2c2);
 
-  debug_write_string("  Stack started at:   ");
-  debug_write_int(&usb_package_size);
-  debug_write_newline();
+  trace_write_string("  Stack started at:   ");
+  trace_write_int(&usb_package_size);
+  trace_write_newline();
 
   // needs a buffer of at least 15 bytes
   get_uid_str(serialNumber);
-  debug_write_string("  STM32 UUID:         ");
-  debug_write_string(serialNumber);
-  debug_write_newline();
+  trace_write_string("  STM32 UUID:         ");
+  trace_write_string(serialNumber);
+  trace_write_newline();
 
   // align to 4 bytes
   transmit_buffer = (usb_package *)(((long long int)transmit_buffer) & 0xFFFFFFFFC);
   transmit_buffer->package_number = 0;
 
   HAL_TIM_Base_Start_IT(&htim4);
-  debug_write_string("\r\nPSK-X20 Initialized, ready to rock!\r\n\r\n");
+  trace_write_string("\r\nPSK-X20 Initialized, ready to rock!\r\n\r\n");
 
   uint8_t sample[6];
   int16_t availableSamples;
@@ -582,7 +582,7 @@ void CleanUpPendingCommands()
 
 void Physio_Start()
 {
-  ConfigureSensor(&hi2c2);
+  HAL_StatusTypeDef max30102_status = MAX30102_Init(&hi2c2);
 
   sensorState.startFlipped = 1;
   sensorState.startTicks = HAL_GetTick();
