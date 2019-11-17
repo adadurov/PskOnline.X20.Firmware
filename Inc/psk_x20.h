@@ -38,6 +38,12 @@ typedef struct {
     // номер пакета после получения команды старт (32-бит)			4
     uint32_t package_number;
 
+    // bitmap with status flags (32 bit)                            4
+	uint32_t flags;
+
+    // reserved (32 bit)                                            4
+	uint32_t reserved;
+
 	// количество переполнений кругового буфера (32 бит)			4
     uint32_t ring_buffer_overflows;
 
