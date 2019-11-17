@@ -3,10 +3,10 @@
 typedef struct
 {
   // write index
-  uint16_t begin;
+  uint16_t last;
 
   // read index
-  uint16_t end;
+  uint16_t first;
 
   // buffer size
   uint16_t size;
