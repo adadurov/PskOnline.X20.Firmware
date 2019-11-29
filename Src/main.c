@@ -254,6 +254,8 @@ int main(void)
   int16_t availableSamples;
   uint32_t ramp = 0;
 
+  MAX30102_DieTempPrepare(&hi2c2);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -265,6 +267,17 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  	ExecutePendingCommands(pRingBuf);
+
+	    while( ! MAX30102_DieTempReady(&hi2c2) ) ;
+	    uint16_t die_temp = MAX30102_DieTempRead(&hi2c2);
+	    MAX30102_DieTempPrepare(&hi2c2);
+
+	    HAL_Delay(500);
+	    trace_write_string("Die temperature: ");
+	    trace_write_int(die_temp >> 8);
+	    trace_write_string(".");
+	    trace_write_int(die_temp & 0xff);
+	    trace_write_newline();
 
 	    /* USER CODE BEGIN 3 */
 	      availableSamples = MAX30102_GetNumSamplesInFifo(&hi2c2);
