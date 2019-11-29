@@ -526,7 +526,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		if( sensorState.started)
 		{
 			// flash LED when recording physio data
-			HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
+			//HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
+
+			// switch LED ON when recording physio data
+			HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
 		}
 		else
 		{
