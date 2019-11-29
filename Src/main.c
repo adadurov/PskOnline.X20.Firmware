@@ -254,6 +254,12 @@ int main(void)
   int16_t availableSamples;
   uint32_t ramp = 0;
 
+  MAX30102_DieTempPrepare(&hi2c2);
+  while( !MAX30102_DieTempReady(&hi2c2) );
+
+  uint16_t die_temp = MAX30102_DieTempRead(&hi2c2);
+  MAX30102_DieTempPrepare(&hi2c2);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -297,6 +303,18 @@ int main(void)
 	          // put the value to our circular buffer for transmitting via USB
 	      }
 
+	      if( MAX30102_DieTempReady(&hi2c2) )
+          {
+            die_temp = MAX30102_DieTempRead(&hi2c2);
+            MAX30102_DieTempPrepare(&hi2c2);
+
+//		    trace_write_string("Die temperature: ");
+//		    trace_write_int(die_temp >> 8);
+//		    trace_write_string(".");
+//		    trace_write_int(die_temp & 0xff);
+//		    trace_write_newline();
+		  }
+
 	      if( ! CDC_FreeToTransmit() )
 	      {
 //	    	  debug_write_string("c");
@@ -314,6 +332,7 @@ int main(void)
 	    		  transmit_buffer->samples[i] = ring_buffer_remove_sample(pRingBuf);
 	    	  }
 	          transmit_buffer->package_number++;
+	          transmit_buffer->die_temperature = die_temp;
 	          transmit_buffer->ring_buffer_data_count = ring_buffer_samples;
 	          transmit_buffer->num_samples = required_samples;
 	          transmit_buffer->ring_buffer_overflows = pRingBuf->overflows;

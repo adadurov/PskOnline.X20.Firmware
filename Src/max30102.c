@@ -56,7 +56,7 @@ HAL_StatusTypeDef MAX30102_Init(I2C_HandleTypeDef *_hi2c)
 
     status = MAX30102_WriteRegister(_hi2c, MAX30102_REG_INT_EN_1, 0xc0);
     if (HAL_OK != status) return status;
-    status = MAX30102_WriteRegister(_hi2c, MAX30102_REG_INT_EN_2, 0x00);
+    status = MAX30102_WriteRegister(_hi2c, MAX30102_REG_INT_EN_2, 0x02);
     if (HAL_OK != status) return status;
 
     status = MAX30102_ResetFIFO(_hi2c);
@@ -121,4 +121,27 @@ HAL_StatusTypeDef MAX30102_ReadFifo(I2C_HandleTypeDef *_hi2c, uint8_t* buffer, u
         return HAL_ERROR;
     }
     return HAL_I2C_Master_Receive(_hi2c, MAX30102_I2C_READ_ADDR, buffer, num_bytes, 1000);
+}
+
+void MAX30102_DieTempPrepare(I2C_HandleTypeDef *_hi2c)
+{
+    // Start temperature conversion
+	MAX30102_WriteRegister(_hi2c, MAX30102_REG_DIE_TEMP_CONFIG, 1);
+}
+
+uint8_t MAX30102_DieTempReady(I2C_HandleTypeDef *_hi2c)
+{
+    uint8_t intStatus = 0;
+    MAX30102_ReadRegister(_hi2c, MAX30102_REG_INT_STATUS_2, &intStatus, 1);
+    return intStatus & 0x02;
+}
+
+uint16_t MAX30102_DieTempRead(I2C_HandleTypeDef *_hi2c)
+{
+    uint8_t wholes = 0;
+    uint8_t fractions = 0;
+    MAX30102_ReadRegister(_hi2c, MAX30102_REG_DIE_TEMP_WHOLE, &wholes, 1);
+    MAX30102_ReadRegister(_hi2c, MAX30102_REG_DIE_TEMP_FRACTIONS, &fractions, 1);
+
+	return (wholes << 8) + fractions;
 }

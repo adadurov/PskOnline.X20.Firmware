@@ -41,8 +41,13 @@ typedef struct {
     // bitmap with status flags (32 bit)                            4
 	uint32_t flags;
 
-    // reserved (32 bit)                                            4
-	uint32_t reserved;
+    // die temperature                                              2
+	// 8 higher-order bits - whole degrees in 2’s complement format
+	// 4 low bits - fractions of 0.0625 degree (always positive)
+	uint16_t die_temperature;
+
+	// reserved (16 bit)                                            2
+	uint16_t reserved;
 
 	// количество переполнений кругового буфера (32 бит)			4
     uint32_t ring_buffer_overflows;
