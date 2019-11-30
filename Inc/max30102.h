@@ -10,8 +10,6 @@
 
 #include "stm32f1xx_hal.h"
 
-// Refer to https://datasheets.maximintegrated.com/en/ds/MAX30102.pdf
-
 #define MAX30102_I2C_WRITE_ADDR             0xAE
 #define MAX30102_I2C_READ_ADDR              0xAF
 
@@ -35,17 +33,12 @@
 #define MAX30102_REG_MLED_MODE_SLOT_12      0x11
 #define MAX30102_REG_MLED_MODE_SLOT_34      0x12
 
-#define MAX30102_REG_DIE_TEMP_WHOLE         0x1F
-#define MAX30102_REG_DIE_TEMP_FRACTIONS     0x20
-#define MAX30102_REG_DIE_TEMP_CONFIG        0x21
-
 #define MAX30102_REG_REV_ID                 0xFE
 #define MAX30102_REG_PART_ID                0xFF
 
 #define MAX30102_MODE_HEART_RATE            0x02
 #define MAX30102_MODE_SPO2                  0x03
 #define MAX30102_MODE_MULTI_LED             0x07
-
 
 HAL_StatusTypeDef MAX30102_ReadRegister(I2C_HandleTypeDef *_hi2c, uint8_t regAddress, uint8_t* buffer, uint8_t count);
 HAL_StatusTypeDef MAX30102_WriteRegister(I2C_HandleTypeDef *_hi2c, uint8_t regAddress, uint8_t value);
@@ -58,10 +51,5 @@ uint8_t MAX30102_GetPartId(I2C_HandleTypeDef *_hi2c);
 
 HAL_StatusTypeDef MAX30102_ResetFIFO(I2C_HandleTypeDef *_hi2c);
 int16_t MAX30102_GetNumSamplesInFifo(I2C_HandleTypeDef *_hi2c);
-
-void MAX30102_DieTempPrepare(I2C_HandleTypeDef *_hi2c);
-uint8_t MAX30102_DieTempReady(I2C_HandleTypeDef *_hi2c);
-uint16_t MAX30102_DieTempRead(I2C_HandleTypeDef *_hi2c);
-
 
 #endif /* MAX30102_H_ */
