@@ -56,7 +56,6 @@
 /* USER CODE BEGIN Includes */
 #include "revision.h"
 #include "usbd_cdc_if.h"
-#include "max30102.h"
 #include "debug.h"
 #include "uuid.h"
 #include "i2c_erratum.h"
@@ -172,7 +171,7 @@ int main(void)
   /* USER CODE BEGIN Init */
   uint16_t usb_package_size = sizeof(usb_package) + TR_BUF_SAMPLES * sizeof(TR_BUF_SAMPLE_T) + 16;
 
-  sensor = X20_ConfigureSensor(&hi2c2, usb_package_size);
+  sensor = X20_ConfigureSensor(&hi2c2, usb_package_size, &CDC_FreeToTransmit, &CDC_Transmit_FS);
 
   CDC_UseSensor(sensor);
 
@@ -189,7 +188,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	X20_RunCycle(sensor);
+	X20_Task(sensor);
   }
   /* USER CODE END 3 */
 }

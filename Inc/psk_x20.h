@@ -84,22 +84,25 @@ enum x20_strings {
   X20_BUILD_DATE_STRING_IDX = 0x42
 };
 
-
-HX20_SENSOR X20_ConfigureSensor(I2C_HandleTypeDef* phi2c2, uint16_t usb_package_size);
+HX20_SENSOR X20_ConfigureSensor(
+		I2C_HandleTypeDef* phi2c,
+		uint16_t usb_package_size,
+		uint8_t (*usbFreeToTransmit)(),
+		uint8_t (*usbTransmit)(uint8_t*, uint16_t)
+		);
 
 void X20_Task(HX20_SENSOR sensor);
 
-void X20_Start(HX20_SENSOR);
+void X20_Start(HX20_SENSOR sensor);
 
-void X20_Stop(HX20_SENSOR);
+void X20_Stop(HX20_SENSOR sensor);
 
-void X20_UseRamp(HX20_SENSOR);
+void X20_UseRamp(HX20_SENSOR sensor);
 
-void X20_UsePpg(HX20_SENSOR);
+void X20_UsePpg(HX20_SENSOR sensor);
 
-x20_capabilities* X20_GetCapabilities(HX20_SENSOR);
+x20_capabilities* X20_GetCapabilities(HX20_SENSOR sensor);
 
-uint8_t X20_IsStarted(HX20_SENSOR);
-
+uint8_t X20_IsStarted(HX20_SENSOR sensor);
 
 #endif
