@@ -56,41 +56,21 @@
 /* USER CODE BEGIN Includes */
 #include "revision.h"
 #include "usbd_cdc_if.h"
-#include "max30102.h"
 #include "debug.h"
 #include "uuid.h"
-#include "ring_buffer.h"
 #include "i2c_erratum.h"
-#include "psk_x20.h"
 #include "revision.h"
+#include "psk_x20.h"
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-#define TR_BUF_SAMPLES              64
-#define TR_BUF_SAMPLE_T             uint32_t
-
-#define RING_BUFFER_SAMPLES         1024
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
-void ExecutePendingCommands(ring_buffer *buffer);
-
-void CleanUpPendingCommands();
-
-void Physio_Start();
-
-void Physio_Stop();
-
-void Physio_UseRamp();
-
-void Physio_UsePpg();
-
 
 /* USER CODE END PD */
 
@@ -109,8 +89,8 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 
 char serialNumber[20];
-WAVEFORM_SENSOR_STATE sensorState;
-uint32_t ramp = 0;
+
+HX20_SENSOR sensor;
 
 /* USER CODE END PV */
 
@@ -127,25 +107,7 @@ static void MX_USART2_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void ConfigureSensor(I2C_HandleTypeDef* phi2c2) {
-  HAL_StatusTypeDef max30102_status = MAX30102_Init(phi2c2);
-  trace_write_string("  MAX30102 part_id:   ");
-
-  if (HAL_OK == max30102_status)
-  {
-	  uint8_t partId = MAX30102_GetPartId(phi2c2);
-	  trace_write_int(partId);
-	  trace_write_newline();
-  }
-  else
-  {
-	  trace_write_string("    Failed to configure. Status: ");
-	  trace_write_int(max30102_status);
-	  trace_write_newline();
-  }
-}
-
-void TraceStartupInfo(void *stackPointer, char *serialNumber, ring_buffer* pRingBuf, usb_package* transmit_buffer, uint16_t usb_package_size)
+void TraceStartupInfo(void *stackPointer, char *serialNumber, uint16_t usb_package_size)
 {
 	trace_write_newline();
 	trace_write_newline();
@@ -155,18 +117,6 @@ void TraceStartupInfo(void *stackPointer, char *serialNumber, ring_buffer* pRing
 	trace_write_string("  Version:            ");  trace_write_string(REVISION_INFO);  trace_write_newline();
 	trace_write_string("  Built on:           ");  trace_write_string(BUILD_DATE);  trace_write_newline();
 
-	if (0 == pRingBuf) {
-		trace_write_string(".................failed to allocate ring buffer for ");
-		trace_write_int(RING_BUFFER_SAMPLES);
-		trace_write_newline();
-		Error_Handler();
-	}
-	if (0 == transmit_buffer) {
-		trace_write_string(".................failed to allocate transmit_buffer of ");
-		trace_write_int(usb_package_size);
-		trace_write_newline();
-		Error_Handler();
-	}
 	trace_write_string("  Stack started at:   ");
 	trace_write_int((uint32_t)stackPointer);
 	trace_write_newline();
@@ -177,22 +127,6 @@ void TraceStartupInfo(void *stackPointer, char *serialNumber, ring_buffer* pRing
 	trace_write_string("PSK-X20 Initialized, ready to rock!");
 	trace_write_newline();
 	trace_write_newline();
-}
-
-void InitSensorState(WAVEFORM_SENSOR_STATE* sensorState, uint16_t usb_package_size) {
-	sensorState->bitsPerSample = 18;
-	sensorState->samplingRate = 400;
-	sensorState->physioTransferSize = usb_package_size;
-	sensorState->started = 0;
-	sensorState->usingPpg = 1;
-	sensorState->startFlipped = 0;
-	sensorState->stopFlipped = 0;
-	sensorState->stopTicks = 0;
-	sensorState->startTicks = 0;
-	sensorState->Start = &Physio_Start;
-	sensorState->Stop = &Physio_Stop;
-	sensorState->UsePpg = &Physio_UsePpg;
-	sensorState->UseRamp = &Physio_UseRamp;
 }
 
 /* USER CODE END 0 */
@@ -212,12 +146,6 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-  /* USER CODE BEGIN Init */
-  uint16_t usb_package_size = sizeof(usb_package) + TR_BUF_SAMPLES * sizeof(TR_BUF_SAMPLE_T) + 16;
-
-  InitSensorState(&sensorState, usb_package_size);
-  CDC_SetSensorInterface(&sensorState);
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -232,25 +160,24 @@ int main(void)
   MX_TIM4_Init();
   MX_I2C2_Init();
   MX_USART2_UART_Init();
-  MX_USB_DEVICE_Init();
-  /* USER CODE BEGIN 2 */
 
-  ConfigureSensor(&hi2c2);
-
-  ring_buffer *pRingBuf = ring_buffer_alloc(RING_BUFFER_SAMPLES);
-  usb_package *transmit_buffer = (usb_package*)malloc(usb_package_size);
-
+  trace_write_init(&huart2);
   // needs a buffer of at least 16 bytes
   get_uid_str(serialNumber);
 
-  // align to 4 bytes
-  transmit_buffer = (usb_package *)(((long long int)transmit_buffer) & 0xFFFFFFFFC);
-  transmit_buffer->package_number = 0;
+  MX_USB_DEVICE_Init();
+  /* USER CODE BEGIN 2 */
+
+  /* USER CODE BEGIN Init */
+  uint16_t usb_package_size = sizeof(usb_package) + TR_BUF_SAMPLES * sizeof(TR_BUF_SAMPLE_T) + 16;
+
+  sensor = X20_ConfigureSensor(&hi2c2, usb_package_size, &CDC_FreeToTransmit, &CDC_Transmit_FS);
+
+  CDC_UseSensor(sensor);
 
   HAL_TIM_Base_Start_IT(&htim4);
-  trace_write_init(&huart2);
 
-  TraceStartupInfo(&usb_package_size, serialNumber, pRingBuf, transmit_buffer, usb_package_size);
+  TraceStartupInfo(&usb_package_size, serialNumber, usb_package_size);
 
   /* USER CODE END 2 */
 
@@ -261,83 +188,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-    ExecutePendingCommands(pRingBuf);
-
-    PutSamplesToRingBuffer(pRingBuf, &sensorState);
-
-    TransmitSamples(pRingBuf, transmit_buffer, TR_BUF_SAMPLES);
+	X20_Task(sensor);
   }
   /* USER CODE END 3 */
 }
 
-void PutSamplesToRingBuffer(ring_buffer *pRingBuf, WAVEFORM_SENSOR_STATE *pSensorState)
-{
-    int16_t availableSamples = MAX30102_GetNumSamplesInFifo(&hi2c2);
-
-    if (sensorState.started != 0 && availableSamples > 0)
-    {
-        debug_write_string("==> Z: "); debug_write_int(availableSamples); debug_write_newline();
-    }
-
-    uint8_t sample[6];
-    uint32_t value;
-
-    for (int16_t i = 0; i < availableSamples; ++i)
-    {
-        MAX30102_ReadFifo(&hi2c2, sample, 6);
-
-		  if (sensorState.started != 0)
-		  {
-			  if (sensorState.usingPpg)
-			  {
-		          value = ((sample[3] << 16) & 0x03) + (sample[4] << 8) + sample[5];
-				  debug_write_string(" IR: "); debug_write_int(value); debug_write_newline();
-
-			  }
-			  else
-			  {
-				value = ++ramp;
-    	        debug_write_string(" RAMP: "); debug_write_int(value); debug_write_newline();
-			  }
-
-	          // put the value to our circular buffer for transmitting via USB
-            ring_buffer_add_sample(pRingBuf, value);
-		  }
-    }
-
-}
-
-void TransmitSamples(ring_buffer *pRingBuf, usb_package* transmit_buffer, uint16_t required_samples)
-{
-    if( ! CDC_FreeToTransmit() )
-    {
-        return;
-    }
-
-    uint16_t ring_buffer_samples = ring_buffer_get_count(pRingBuf);
-    if (ring_buffer_samples >= required_samples)
-    {
-        // copy samples from the ring buffer to the transmit buffer
-        for( uint16_t i = 0; i < required_samples; ++i)
-        {
-            transmit_buffer->samples[i] = ring_buffer_remove_sample(pRingBuf);
-	    }
-	    transmit_buffer->package_number++;
-	    transmit_buffer->ring_buffer_data_count = ring_buffer_samples;
-	    transmit_buffer->num_samples = required_samples;
-	    transmit_buffer->ring_buffer_overflows = pRingBuf->overflows;
-	    pRingBuf->overflows = 0;
-
-	    uint16_t len = sizeof(usb_package) + transmit_buffer->num_samples * sizeof(TR_BUF_SAMPLE_T);
-	    // transfer the package to the USB Host
-        int start_tr = HAL_GetTick();
-        int result = CDC_Transmit_FS((uint8_t*)transmit_buffer, len);
-
-        int stop_tr = HAL_GetTick();
-        debug_write_string("TR_TIME: "); debug_write_int(stop_tr - start_tr); debug_write_newline();
-    }
-}
 
 /**
   * @brief System Clock Configuration
@@ -529,7 +384,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if( htim->Instance == TIM4 )
 	{
-		if( sensorState.started)
+		if( X20_IsStarted(sensor) )
 		{
 			// flash LED when recording physio data
 			//HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
@@ -544,77 +399,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 	}
 }
-
-void ExecutePendingCommands(ring_buffer *buffer)
-{
-	if (sensorState.startFlipped != 0 && sensorState.stopFlipped != 0)
-	{
-		int startPriority = sensorState.startTicks > sensorState.stopTicks ? 1 : 0;
-		if (startPriority != 0)
-		{
-			debug_write_string("Executed START with priority."); debug_write_newline();
-			ring_buffer_clear(buffer);
-			sensorState.started = 1;
-		}
-		else
-		{
-			debug_write_string("Executed STOP with priority."); debug_write_newline();
-			ring_buffer_clear(buffer);
-			sensorState.started = 0;
-		}
-		CleanUpPendingCommands();
-		return;
-	}
-	if (sensorState.startFlipped != 0)
-	{
-        debug_write_string("Executed START."); debug_write_newline();
-        ring_buffer_clear(buffer);
-        sensorState.started = 1;
-        CleanUpPendingCommands();
-        return;
-	}
-	if (sensorState.stopFlipped != 0)
-	{
-        debug_write_string("Executed STOP."); debug_write_newline();
-        ring_buffer_clear(buffer);
-        sensorState.started = 0;
-        CleanUpPendingCommands();
-        return;
-	}
-}
-
-void CleanUpPendingCommands()
-{
-	sensorState.startFlipped = 0;
-	sensorState.stopFlipped = 0;
-	sensorState.stopTicks = 0;
-	sensorState.startTicks = 0;
-}
-
-void Physio_Start()
-{
-  HAL_StatusTypeDef max30102_status = MAX30102_Init(&hi2c2);
-
-  sensorState.startFlipped = 1;
-  sensorState.startTicks = HAL_GetTick();
-}
-
-void Physio_Stop()
-{
-  sensorState.stopFlipped = 1;
-  sensorState.stopTicks = HAL_GetTick();
-}
-
-void Physio_UseRamp()
-{
-  sensorState.usingPpg = 0;
-}
-
-void Physio_UsePpg()
-{
-  sensorState.usingPpg = 1;
-}
-
 
 /* USER CODE END 4 */
 

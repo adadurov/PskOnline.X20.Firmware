@@ -53,6 +53,7 @@
 /* USER CODE BEGIN INCLUDE */
 #include "debug.h"
 #include "revision.h"
+
 #include "psk_x20.h"
 
 
@@ -125,12 +126,12 @@
 /* Create buffer for and transmission           */
 /* It's up to user to redefine and/or remove those define */
 /** Received data over USB are stored in this buffer      */
-static uint32_t x20_capabilities_descriptor_buffer[sizeof(x20_capabilities_descriptor) / sizeof(uint32_t) + 1];
+static uint32_t x20_capabilities_descriptor_buffer[sizeof(x20_capabilities) / sizeof(uint32_t) + 1];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
 
-static x20_capabilities_descriptor *capabilitiesDescriptor;
-static WAVEFORM_SENSOR_STATE *pSensorState;
+static x20_capabilities *capabilitiesDescriptor;
+HX20_SENSOR sensor;
 
 /* USER CODE END PRIVATE_VARIABLES */
 
@@ -185,12 +186,12 @@ USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
   * @brief  Initializes the CDC media low layer over the FS USB IP
   * @retval USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t CDC_Init_FS(void)
+static int8_t CDC_Init_FS()
 {
   /* USER CODE BEGIN 3 */
   debug_write_string("CDC_Init_FS"); debug_write_newline();
 
-  uint8_t size = sizeof(x20_capabilities_descriptor);
+  uint8_t size = sizeof(x20_capabilities);
   if(size > sizeof(x20_capabilities_descriptor_buffer))
   {
 	  debug_write_string(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> ");
@@ -198,15 +199,8 @@ static int8_t CDC_Init_FS(void)
 	  debug_write_newline();
 	  while(1);
   }
-  capabilitiesDescriptor = (x20_capabilities_descriptor*)x20_capabilities_descriptor_buffer;
 
-  capabilitiesDescriptor->size = size;
-  capabilitiesDescriptor->generation = 0;
-  capabilitiesDescriptor->bits_per_sample = pSensorState->bitsPerSample;
-  capabilitiesDescriptor->sampling_rate = pSensorState->samplingRate;
-  capabilitiesDescriptor->bytes_per_physio_transfer = pSensorState->physioTransferSize;
-  capabilitiesDescriptor->firmware_build_date_str_idx = X20_BUILD_DATE_STRING_IDX;
-  capabilitiesDescriptor->revision_info_str_idx = X20_REVISION_STRING_IDX;
+  capabilitiesDescriptor = X20_GetCapabilities(sensor);
 
   debug_write_string("capabilitiesDescriptor ");
   debug_write_int(size);
@@ -255,27 +249,28 @@ static int8_t CDC_Control(
 			  debug_write_string("   => X20_GET_CAP_DESC ");
 			  debug_write_int(capabilitiesDescriptor->size);
 			  debug_write_newline();
-              *responseData = (uint8_t*)capabilitiesDescriptor;
+
+              *responseData = (uint8_t*)X20_GetCapabilities(sensor);
               return USBD_OK;
 
 		  case X20_USE_PPG:
 			  debug_write_string("   => X20_USE_PPG"); debug_write_newline();
-			  pSensorState->UsePpg();
+			  X20_UsePpg(sensor);
               return USBD_OK;
 
 		  case X20_USE_RAMP:
 			  debug_write_string("   => X20_USE_RAMP"); debug_write_newline();
-			  pSensorState->UseRamp();
+			  X20_UseRamp(sensor);
               return USBD_OK;
 
 		  case X20_START:
 			  debug_write_string("   => X20_START"); debug_write_newline();
-			  pSensorState->Start();
+			  X20_Start(sensor);
               return USBD_OK;
 
 		  case X20_STOP:
 			  debug_write_string("   => X20_STOP"); debug_write_newline();
-			  pSensorState->Stop();
+			  X20_Stop(sensor);
               return USBD_OK;
 
 		  default:
@@ -331,9 +326,9 @@ uint8_t CDC_FreeToTransmit()
   return 1;
 }
 
-void CDC_SetSensorInterface(WAVEFORM_SENSOR_STATE *state)
+void CDC_UseSensor(HX20_SENSOR state)
 {
-	pSensorState = state;
+	sensor = state;
 }
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */

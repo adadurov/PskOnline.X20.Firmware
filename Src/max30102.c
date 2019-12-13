@@ -34,6 +34,7 @@ HAL_StatusTypeDef MAX30102_ResetFIFO(I2C_HandleTypeDef *_hi2c)
     status = MAX30102_WriteRegister(_hi2c, MAX30102_REG_FIFO_OVF_CNT, 0x00);  //OVF_COUNTER[4:0]
     if (HAL_OK != status) return status;
 
+    return status;
 }
 
 void MAX30102_PowerDown(I2C_HandleTypeDef *_hi2c)
