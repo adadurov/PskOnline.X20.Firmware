@@ -59,6 +59,7 @@
 #include "usbd_cdc.h"
 
 /* USER CODE BEGIN INCLUDE */
+#include "psk_x20.h"
 
 /* USER CODE END INCLUDE */
 
@@ -78,31 +79,6 @@
   */
 /* USER CODE BEGIN EXPORTED_DEFINES */
 
- typedef struct {
-    uint16_t physioTransferSize;
-
-    uint16_t bitsPerSample;
-
-    uint16_t samplingRate;
-
-	uint8_t startFlipped;
-
-	uint32_t startTicks;
-
-	uint8_t stopFlipped;
-
-	uint32_t stopTicks;
-
-    uint8_t started;
-
-	uint8_t usingPpg;
-
-    void (* Start)      ();
-    void (* Stop)       ();
-    void (* UseRamp)    ();
-    void (* UsePpg)     ();
-
- } WAVEFORM_SENSOR_STATE;
 
 /* USER CODE END EXPORTED_DEFINES */
 
@@ -163,7 +139,7 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 
 uint8_t CDC_FreeToTransmit();
 
-void CDC_SetSensorInterface(WAVEFORM_SENSOR_STATE *state);
+void CDC_UseSensor(HX20_SENSOR sensor);
 
 /* USER CODE END EXPORTED_FUNCTIONS */
 
