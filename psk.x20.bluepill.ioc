@@ -1,5 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
 File.Version=6
+I2C2.I2C_Mode=I2C_Standard
+I2C2.IPParameters=I2C_Mode
 KeepUserPlacement=false
 Mcu.Family=STM32F1
 Mcu.IP0=I2C2
@@ -43,6 +45,7 @@ NVIC.PriorityGroup=NVIC_PRIORITYGROUP_4
 NVIC.SVCall_IRQn=true\:0\:0\:false\:false\:true\:false
 NVIC.SysTick_IRQn=true\:0\:0\:false\:false\:true\:false
 NVIC.TIM4_IRQn=true\:0\:0\:false\:false\:true\:true
+NVIC.USB_HP_CAN1_TX_IRQn=true\:0\:0\:false\:false\:true\:true
 NVIC.USB_LP_CAN1_RX0_IRQn=true\:0\:0\:false\:false\:true\:false
 NVIC.UsageFault_IRQn=true\:0\:0\:false\:false\:true\:false
 PA11.Mode=Device
@@ -96,8 +99,8 @@ ProjectManager.MainLocation=Src
 ProjectManager.NoMain=false
 ProjectManager.PreviousToolchain=SW4STM32
 ProjectManager.ProjectBuild=false
-ProjectManager.ProjectFileName=psk.x20.bluepill.02.ioc
-ProjectManager.ProjectName=psk.x20.bluepill.02
+ProjectManager.ProjectFileName=psk.x20.bluepill.ioc
+ProjectManager.ProjectName=psk.x20.bluepill
 ProjectManager.StackSize=0x400
 ProjectManager.TargetToolchain=SW4STM32
 ProjectManager.ToolChainLocation=

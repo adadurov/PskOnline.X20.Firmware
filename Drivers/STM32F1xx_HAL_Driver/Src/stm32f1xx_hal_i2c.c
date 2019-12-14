@@ -911,6 +911,8 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
           /* Wait until BTF flag is set */
           if(I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_BTF, RESET, Timeout, tickstart) != HAL_OK)
           {
+            /* Re-enable IRQs */
+            __enable_irq();
             return HAL_TIMEOUT;
           }
 
@@ -2765,6 +2767,7 @@ HAL_StatusTypeDef HAL_I2C_Mem_Read(I2C_HandleTypeDef *hi2c, uint16_t DevAddress,
           /* Wait until BTF flag is set */
           if(I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_BTF, RESET, Timeout, tickstart) != HAL_OK)
           {
+        	__enable_fault_irq();
             return HAL_TIMEOUT;
           }
 
