@@ -6,8 +6,8 @@
 #include "max30102.h"
 #include "stdlib.h"
 
-//#define USE_PPG 1
-#define USE_PPG 0
+#define USE_PPG 1
+//#define USE_PPG 0
 
 typedef struct {
     uint16_t physioTransferSize;
@@ -125,6 +125,7 @@ void CleanUpPendingCommands(X20_SENSOR *pSensor)
 void DoStartAndCleanup(X20_SENSOR *pSensor)
 {
 	ring_buffer_clear(pSensor->pRingBuf);
+    pSensor->transmit_buffer->package_number = 0;
 	pSensor->started = 1;
     CleanUpPendingCommands(pSensor);
 }
@@ -250,6 +251,7 @@ void X20_TransmitSamples(X20_SENSOR *pSensor, uint16_t required_samples)
 {
     if ( ! pSensor->usbFreeToTransmit() )
     {
+    	trace_write_string("_");  trace_write_newline();
         return;
     }
 
@@ -259,26 +261,47 @@ void X20_TransmitSamples(X20_SENSOR *pSensor, uint16_t required_samples)
     uint16_t ring_buffer_samples = ring_buffer_get_count(pRingBuf);
     if (ring_buffer_samples >= required_samples)
     {
-        trace_write_string("T");
-
         // copy samples from the ring buffer to the transmit buffer
         for( uint16_t i = 0; i < required_samples; ++i)
         {
             transmit_buffer->samples[i] = ring_buffer_remove_sample(pRingBuf);
 	    }
 	    transmit_buffer->package_number++;
-	    transmit_buffer->ring_buffer_data_count = ring_buffer_samples;
+	    transmit_buffer->reserved = pRingBuf->first;
+	    // number of samples remaining in the ring buffer
+	    transmit_buffer->ring_buffer_data_count = ring_buffer_get_count(pRingBuf);
 	    transmit_buffer->num_samples = required_samples;
 	    transmit_buffer->ring_buffer_overflows = pRingBuf->overflows;
 	    pRingBuf->overflows = 0;
 
 	    uint16_t len = sizeof(usb_package) + transmit_buffer->num_samples * sizeof(TR_BUF_SAMPLE_T);
-	    // transfer the package to the USB Host
+
+	    // put the package to the USB transfer buffer
+	    // the USB state machine will transmit the buffer to the USB Host
+	    // once the USB Host sends an IN token for the endpoint
         int start_tr = HAL_GetTick();
         int result = pSensor->usbTransmit((uint8_t*)transmit_buffer, len);
+        int time = HAL_GetTick() - start_tr;
 
-        int stop_tr = HAL_GetTick();
-        debug_write_string("TR_TIME: "); debug_write_int(stop_tr - start_tr); debug_write_newline();
+        if (result == 0)
+        {
+//            return USBD_OK == 0;
+//            return USBD_BUSY == 1;
+//            return USBD_FAIL == 2;
+        	trace_write_string(" T");
+        }
+        else if (result == 1)
+        {
+        	trace_write_string(" B");
+        }
+        else if (result == 2)
+        {
+        	trace_write_string(" F");
+        }
+    	trace_write_int(transmit_buffer->package_number);
+    	trace_write_newline();
+
+        debug_write_string("TR_TIME: "); debug_write_int(time); debug_write_newline();
     }
 }
 
