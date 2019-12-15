@@ -44,7 +44,10 @@ void ring_buffer_add_sample(ring_buffer* buffer, uint32_t sample)
 	uint16_t size_after = ring_buffer_get_count(buffer);
 	if( size_after < size_before )
 	{
-		buffer->overflows += 1;
+		if (buffer->overflows < INT32_MAX)
+		{
+			buffer->overflows += 1;
+		}
 	}
 }
 
