@@ -49,7 +49,7 @@ static X20_SENSOR singleSensor;
 
 #define RING_BUFFER_SAMPLES         1024
 
-HX20_SENSOR X20_ConfigureSensor(I2C_HandleTypeDef* phi2c, uint16_t usb_package_size, uint8_t (*usbFreeToTransmit)(), uint8_t (*usbTransmit)(uint8_t*, uint16_t))
+HX20_SENSOR X20_ConfigureSensor(I2C_HandleTypeDef* phi2c, uint16_t usb_package_size, uint8_t (*usbFreeToTransmit)(), uint8_t (*usbTransmit)(uint8_t*, uint16_t), void (*ErrorHandler)() )
 {
 	singleSensor.usbFreeToTransmit = usbFreeToTransmit;
 	singleSensor.usbTransmit = usbTransmit;
@@ -77,13 +77,13 @@ HX20_SENSOR X20_ConfigureSensor(I2C_HandleTypeDef* phi2c, uint16_t usb_package_s
 		trace_write_string(".................failed to allocate ring buffer for ");
 		trace_write_int(RING_BUFFER_SAMPLES);
 		trace_write_newline();
-		Error_Handler();
+		ErrorHandler();
 	}
 	if (0 == singleSensor.transmit_buffer) {
 		trace_write_string(".................failed to allocate transmit_buffer of ");
 		trace_write_int(usb_package_size);
 		trace_write_newline();
-		Error_Handler();
+		ErrorHandler();
 	}
 
     HAL_StatusTypeDef max30102_status = MAX30102_Init(phi2c);

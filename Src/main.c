@@ -190,7 +190,7 @@ int main(void)
 
   TraceStartupInfo(&usb_package_size, serialNumber, usb_package_size);
 
-  sensor = X20_ConfigureSensor(&hi2c2, usb_package_size, &CDC_FreeToTransmit, &CDC_Transmit_FS);
+  sensor = X20_ConfigureSensor(&hi2c2, usb_package_size, &CDC_FreeToTransmit, &CDC_Transmit_FS, &Error_Handler);
 
   CDC_UseSensor(sensor);
 

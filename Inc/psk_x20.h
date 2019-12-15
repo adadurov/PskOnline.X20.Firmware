@@ -88,7 +88,8 @@ HX20_SENSOR X20_ConfigureSensor(
 		I2C_HandleTypeDef* phi2c,
 		uint16_t usb_package_size,
 		uint8_t (*usbFreeToTransmit)(),
-		uint8_t (*usbTransmit)(uint8_t*, uint16_t)
+		uint8_t (*usbTransmit)(uint8_t*, uint16_t),
+		void (*ErrorHandler)()
 		);
 
 void X20_Task(HX20_SENSOR sensor);
