@@ -152,6 +152,7 @@ void TraceStartupReady()
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+  uint16_t usb_package_size = 0;
 
   /* USER CODE END 1 */
 
@@ -183,17 +184,20 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /* USER CODE BEGIN Init */
-  uint16_t usb_package_size = sizeof(usb_package) + TR_BUF_SAMPLES * sizeof(TR_BUF_SAMPLE_T) + 16;
+  const uint16_t max_usb_package_size = 63;
 
   GPIO_Init_USB_Connect();
   HAL_TIM_Base_Start_IT(&htim4);
 
   TraceStartupInfo(&usb_package_size, serialNumber, usb_package_size);
 
-  sensor = X20_ConfigureSensor(&hi2c2, usb_package_size, &CDC_FreeToTransmit, &CDC_Transmit_FS, &Error_Handler);
+  sensor = X20_ConfigureSensor(&hi2c2, max_usb_package_size, &CDC_FreeToTransmit, &CDC_Transmit_FS, &Error_Handler);
+  usb_package_size = X20_GetCapabilities(sensor)->bytes_per_physio_transfer;
 
   CDC_UseSensor(sensor);
 
+  // Connect USB pull-up so that the USB host detects the connected device
+  // Required for OLIMEX STM32-P103 board
   USB_ConnectRes (1);
 
   TraceStartupReady();

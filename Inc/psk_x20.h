@@ -1,8 +1,8 @@
 #ifndef PSK_X20_DEFINES
 #define PSK_X20_DEFINES
 
-#define TR_BUF_SAMPLES              64
-#define TR_BUF_SAMPLE_T             uint32_t
+// the number of bytes per sample
+#define TR_BUF_SAMPLE_SIZE          3
 
 typedef void* HX20_SENSOR;
 
@@ -36,7 +36,6 @@ typedef struct
 }  __attribute__((packed))
 x20_capabilities;
 
-#define TR_BUF_SAMPLE_T             uint32_t
 
 typedef struct {
     // sequential number of packages sent                           4
@@ -60,8 +59,8 @@ typedef struct {
 	// the number of 32-bit samples in the package                  2
 	uint16_t num_samples;
 
-	// flexible array of samples
-	TR_BUF_SAMPLE_T samples[];
+	// flexible array of bytes representing the samples
+	uint8_t samples[];
 
 } __attribute__((packed))
 usb_package;
@@ -89,7 +88,7 @@ enum x20_strings {
 
 HX20_SENSOR X20_ConfigureSensor(
 		I2C_HandleTypeDef* phi2c,
-		uint16_t usb_package_size,
+		uint16_t max_usb_package_size,
 		uint8_t (*usbFreeToTransmit)(),
 		uint8_t (*usbTransmit)(uint8_t*, uint16_t),
 		void (*ErrorHandler)()
