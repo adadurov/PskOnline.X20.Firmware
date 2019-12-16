@@ -51,6 +51,9 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
+
+//#define ENABLE_DEBUG
+
 #include "debug.h"
 #include "revision.h"
 
@@ -123,14 +126,9 @@
   * @brief Private variables.
   * @{
   */
-/* Create buffer for and transmission           */
-/* It's up to user to redefine and/or remove those define */
-/** Received data over USB are stored in this buffer      */
-static uint32_t x20_capabilities_descriptor_buffer[sizeof(x20_capabilities) / sizeof(uint32_t) + 1];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
 
-static x20_capabilities *capabilitiesDescriptor;
 HX20_SENSOR sensor;
 
 /* USER CODE END PRIVATE_VARIABLES */
@@ -191,20 +189,7 @@ static int8_t CDC_Init_FS()
   /* USER CODE BEGIN 3 */
   debug_write_string("CDC_Init_FS"); debug_write_newline();
 
-  uint8_t size = sizeof(x20_capabilities);
-  if(size > sizeof(x20_capabilities_descriptor_buffer))
-  {
-	  debug_write_string(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> ");
-	  debug_write_string("x20_capabilities_descriptor structure is too large!");
-	  debug_write_newline();
-	  while(1);
-  }
-
-  capabilitiesDescriptor = X20_GetCapabilities(sensor);
-
-  debug_write_string("capabilitiesDescriptor ");
-  debug_write_int(size);
-  debug_write_newline();
+  debug_write_string("capabilitiesDescriptor "); debug_write_int(sizeof(x20_capabilities)); debug_write_newline();
 
   return (USBD_OK);
   /* USER CODE END 3 */
@@ -228,11 +213,11 @@ static int8_t CDC_Control(
 		uint8_t **responseData,
 		uint16_t len)
 {
-  debug_write_string("CDC_Ctrl ");
-  debug_write_int(req->bmRequest);
-  debug_write_string(" ");
-  debug_write_int(req->bRequest);
-  debug_write_newline();
+//  debug_write_string("CDC_Ctrl ");
+//  debug_write_int(req->bmRequest);
+//  debug_write_string(" ");
+//  debug_write_int(req->bRequest);
+//  debug_write_newline();
 
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*) hUsbDeviceFS.pClassData;
 
@@ -240,15 +225,13 @@ static int8_t CDC_Control(
 
   if( command_request_type == (req->bmRequest & command_request_type))
   {
-	  debug_write_string(" => X20 command"); debug_write_newline();
+//	  debug_write_string(" => X20 command"); debug_write_newline();
 
 	  // we probably received a commands
 	  switch(req->bRequest)
 	  {
 		  case X20_GET_CAPABILITIES_DESCRIPTOR:
-			  debug_write_string("   => X20_GET_CAP_DESC ");
-			  debug_write_int(capabilitiesDescriptor->size);
-			  debug_write_newline();
+			  debug_write_string("   => X20_GET_CAPS "); debug_write_newline();
 
               *responseData = (uint8_t*)X20_GetCapabilities(sensor);
               return USBD_OK;

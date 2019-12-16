@@ -12,7 +12,8 @@ typedef struct
   uint16_t size;
 
   // buffer overflow count
-  uint32_t overflows;
+  // will not exceed INT32_MAX
+  int32_t overflows;
 
   // flexible buffer
   uint32_t buffer[];

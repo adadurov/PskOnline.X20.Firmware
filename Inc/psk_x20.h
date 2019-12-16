@@ -1,8 +1,8 @@
 #ifndef PSK_X20_DEFINES
 #define PSK_X20_DEFINES
 
-#define TR_BUF_SAMPLES              64
-#define TR_BUF_SAMPLE_T             uint32_t
+// the number of bytes per sample
+#define TR_BUF_SAMPLE_SIZE          sizeof(uint32_t)
 
 typedef void* HX20_SENSOR;
 
@@ -36,10 +36,10 @@ typedef struct
 }  __attribute__((packed))
 x20_capabilities;
 
-#define TR_BUF_SAMPLE_T             uint32_t
 
 typedef struct {
-    // номер пакета после получения команды старт (32-бит)			4
+    // sequential number of packages sent                           4
+	// after the last 'start' command
     uint32_t package_number;
 
     // bitmap with status flags (32 bit)                            4
@@ -48,17 +48,19 @@ typedef struct {
     // reserved (32 bit)                                            4
 	uint32_t reserved;
 
-	// количество переполнений кругового буфера (32 бит)			4
-    uint32_t ring_buffer_overflows;
+	// number of ring buffer overflows detected                     4
+	// since the previous package
+	// will not exceed INT32_MAX
+    int32_t ring_buffer_overflows;
 
-	// количество измерений в круговом буфере (16 бит)				2
+	// the number of samples remaining in the FIFO                  2
     uint16_t ring_buffer_data_count;
 
-	// количество следующих дальше 32-битных сэмплов (16 бит)		2
+	// the number of 32-bit samples in the package                  2
 	uint16_t num_samples;
 
-	// flexible array of samples
-	TR_BUF_SAMPLE_T samples[];
+	// flexible array of bytes representing the samples
+	uint8_t samples[];
 
 } __attribute__((packed))
 usb_package;
@@ -86,9 +88,10 @@ enum x20_strings {
 
 HX20_SENSOR X20_ConfigureSensor(
 		I2C_HandleTypeDef* phi2c,
-		uint16_t usb_package_size,
+		uint16_t max_usb_package_size,
 		uint8_t (*usbFreeToTransmit)(),
-		uint8_t (*usbTransmit)(uint8_t*, uint16_t)
+		uint8_t (*usbTransmit)(uint8_t*, uint16_t),
+		void (*ErrorHandler)()
 		);
 
 void X20_Task(HX20_SENSOR sensor);

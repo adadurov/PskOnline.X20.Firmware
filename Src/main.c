@@ -102,10 +102,25 @@ static void MX_I2C2_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
+static void GPIO_Init_USB_Connect(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/*************************************************************************
+ * Function Name: USB_ConnectRes
+ * Parameters: Boolean Conn
+ *
+ * Return: none
+ *
+ * Description: Enable Pull-Up resistor
+ *
+ *************************************************************************/
+void USB_ConnectRes (uint8_t Conn)
+{
+	HAL_GPIO_WritePin( GPIOC, GPIO_PIN_11,((Conn)?GPIO_PIN_RESET:GPIO_PIN_SET));
+}
 
 void TraceStartupInfo(void *stackPointer, char *serialNumber, uint16_t usb_package_size)
 {
@@ -113,19 +128,18 @@ void TraceStartupInfo(void *stackPointer, char *serialNumber, uint16_t usb_packa
 	trace_write_newline();
 	trace_write_newline();
 
-	trace_write_string("PSK-X20 Initializing.................");	trace_write_newline();
-	trace_write_string("  Version:            ");  trace_write_string(REVISION_INFO);  trace_write_newline();
-	trace_write_string("  Built on:           ");  trace_write_string(BUILD_DATE);  trace_write_newline();
+	trace_write_string("PSK-X20 Initializing.................");	                        trace_write_newline();
+	trace_write_string("  Version:              ");  trace_write_string(REVISION_INFO);       trace_write_newline();
+	trace_write_string("  Built on:             ");  trace_write_string(BUILD_DATE);          trace_write_newline();
 
-	trace_write_string("  Stack started at:   ");
-	trace_write_int((uint32_t)stackPointer);
+	trace_write_string("  Stack started at:     0x");  trace_write_int((uint32_t)stackPointer);	trace_write_newline();
+	trace_write_string("  STM32 UUID:           ");  trace_write_string(serialNumber);        trace_write_newline();
+}
+
+void TraceStartupReady()
+{
 	trace_write_newline();
-	trace_write_string("  STM32 UUID:         ");
-	trace_write_string(serialNumber);
-	trace_write_newline();
-	trace_write_newline();
-	trace_write_string("PSK-X20 Initialized, ready to rock!");
-	trace_write_newline();
+	trace_write_string("PSK-X20 Initialized, ready to rock!");  trace_write_newline();
 	trace_write_newline();
 }
 
@@ -138,6 +152,7 @@ void TraceStartupInfo(void *stackPointer, char *serialNumber, uint16_t usb_packa
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+  uint16_t usb_package_size = 0;
 
   /* USER CODE END 1 */
 
@@ -169,15 +184,23 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /* USER CODE BEGIN Init */
-  uint16_t usb_package_size = sizeof(usb_package) + TR_BUF_SAMPLES * sizeof(TR_BUF_SAMPLE_T) + 16;
+  const uint16_t max_usb_package_size = 276;
 
-  sensor = X20_ConfigureSensor(&hi2c2, usb_package_size, &CDC_FreeToTransmit, &CDC_Transmit_FS);
-
-  CDC_UseSensor(sensor);
-
+  GPIO_Init_USB_Connect();
   HAL_TIM_Base_Start_IT(&htim4);
 
   TraceStartupInfo(&usb_package_size, serialNumber, usb_package_size);
+
+  sensor = X20_ConfigureSensor(&hi2c2, max_usb_package_size, &CDC_FreeToTransmit, &CDC_Transmit_FS, &Error_Handler);
+  usb_package_size = X20_GetCapabilities(sensor)->bytes_per_physio_transfer;
+
+  CDC_UseSensor(sensor);
+
+  // Connect USB pull-up so that the USB host detects the connected device
+  // Required for OLIMEX STM32-P103 board
+  USB_ConnectRes (1);
+
+  TraceStartupReady();
 
   /* USER CODE END 2 */
 
@@ -379,6 +402,22 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+static void GPIO_Init_USB_Connect(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_11, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : USER_LED_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_11;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+}
+
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
