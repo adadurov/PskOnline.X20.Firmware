@@ -2,7 +2,7 @@
 #define PSK_X20_DEFINES
 
 // the number of bytes per sample
-#define TR_BUF_SAMPLE_SIZE          3
+#define TR_BUF_SAMPLE_SIZE          sizeof(uint32_t)
 
 typedef void* HX20_SENSOR;
 

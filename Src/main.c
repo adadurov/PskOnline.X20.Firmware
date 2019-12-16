@@ -129,11 +129,11 @@ void TraceStartupInfo(void *stackPointer, char *serialNumber, uint16_t usb_packa
 	trace_write_newline();
 
 	trace_write_string("PSK-X20 Initializing.................");	                        trace_write_newline();
-	trace_write_string("  Version:            ");  trace_write_string(REVISION_INFO);       trace_write_newline();
-	trace_write_string("  Built on:           ");  trace_write_string(BUILD_DATE);          trace_write_newline();
+	trace_write_string("  Version:              ");  trace_write_string(REVISION_INFO);       trace_write_newline();
+	trace_write_string("  Built on:             ");  trace_write_string(BUILD_DATE);          trace_write_newline();
 
-	trace_write_string("  Stack started at:   ");  trace_write_int((uint32_t)stackPointer);	trace_write_newline();
-	trace_write_string("  STM32 UUID:         ");  trace_write_string(serialNumber);        trace_write_newline();
+	trace_write_string("  Stack started at:     0x");  trace_write_int((uint32_t)stackPointer);	trace_write_newline();
+	trace_write_string("  STM32 UUID:           ");  trace_write_string(serialNumber);        trace_write_newline();
 }
 
 void TraceStartupReady()
@@ -184,7 +184,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /* USER CODE BEGIN Init */
-  const uint16_t max_usb_package_size = 63;
+  const uint16_t max_usb_package_size = 276;
 
   GPIO_Init_USB_Connect();
   HAL_TIM_Base_Start_IT(&htim4);

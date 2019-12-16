@@ -95,7 +95,7 @@ HX20_SENSOR X20_ConfigureSensor(I2C_HandleTypeDef* phi2c, uint16_t max_usb_packa
 	}
 
     HAL_StatusTypeDef max30102_status = MAX30102_Init(phi2c);
-    trace_write_string("  MAX30102 part_id:   ");
+    trace_write_string("  MAX30102 part_id:     0x");
 
     if (HAL_OK == max30102_status)
     {
@@ -109,8 +109,8 @@ HX20_SENSOR X20_ConfigureSensor(I2C_HandleTypeDef* phi2c, uint16_t max_usb_packa
   	  trace_write_int(max30102_status);
   	  trace_write_newline();
     }
-	trace_write_string("Samples per package:  "); trace_write_int(samplesPerPackage); trace_write_newline();
-	trace_write_string("USB package size:     "); trace_write_int(singleSensor.physioTransferSize); trace_write_newline();
+	trace_write_string("  Samples per package:  0x"); trace_write_int(samplesPerPackage); trace_write_newline();
+	trace_write_string("  USB package size:     0x"); trace_write_int(singleSensor.physioTransferSize); trace_write_newline();
 
     singleSensor.capabilities.size = sizeof(x20_capabilities);
     singleSensor.capabilities.generation = 0;
@@ -260,7 +260,7 @@ void X20_TransmitSamples(X20_SENSOR *pSensor)
 {
     if ( ! pSensor->usbFreeToTransmit() )
     {
-    	trace_write_string("_");  trace_write_newline();
+//    	trace_write_string("_");  trace_write_newline();
         return;
     }
 
@@ -275,9 +275,9 @@ void X20_TransmitSamples(X20_SENSOR *pSensor)
         for( uint16_t i = 0; i < required_samples; ++i)
         {
         	uint32_t sample = ring_buffer_remove_sample(pRingBuf);
-            transmit_buffer->samples[TR_BUF_SAMPLE_SIZE * i] = sample & 0xFF;
-            transmit_buffer->samples[TR_BUF_SAMPLE_SIZE * i + 1] = (sample >> 8) & 0xFF;
-            transmit_buffer->samples[TR_BUF_SAMPLE_SIZE * i + 2] = (sample >> 16) & 0x03;
+        	uint32_t *buffer = transmit_buffer->samples;
+
+            buffer[i] = sample;
 	    }
 	    transmit_buffer->package_number++;
 	    transmit_buffer->reserved = pRingBuf->first;
@@ -297,21 +297,21 @@ void X20_TransmitSamples(X20_SENSOR *pSensor)
         int result = pSensor->usbTransmit((uint8_t*)transmit_buffer, len);
         int time = HAL_GetTick() - start_tr;
 
-        if (result == 0)
-        {
-//            return USBD_OK == 0;
-        	trace_write_string(" T");
-        }
-        else if (result == 1)
-        {
-//            return USBD_BUSY == 1;
-        	trace_write_string(" B");
-        }
-        else if (result == 2)
-        {
-//            return USBD_FAIL == 2;
-        	trace_write_string(" F");
-        }
+//        if (result == 0)
+//        {
+////            return USBD_OK == 0;
+//        	trace_write_string(" T");
+//        }
+//        else if (result == 1)
+//        {
+////            return USBD_BUSY == 1;
+//        	trace_write_string(" B");
+//        }
+//        else if (result == 2)
+//        {
+////            return USBD_FAIL == 2;
+//        	trace_write_string(" F");
+//        }
     	trace_write_int(transmit_buffer->package_number);
     	trace_write_newline();
 
