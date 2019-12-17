@@ -102,13 +102,17 @@ extern char serialNumber[20];
 
 #define USBD_VID                        1155
 #define USBD_LANGID_STRING              1033
-#define USBD_MANUFACTURER_STRING        "https://www.psk-online.ru"
 #define USBD_PID_FS                      22368
-#define USBD_PRODUCT_STRING_FS          "PskOnline X20 Heart Rhythm Sensor"
-#define USBD_SERIALNUMBER_STRING_FS     serialNumber
+
+// Product & manufacturer strings come from the 'usbd_desc.h'
+// This way it may be reused somewhere else
+//#define USBD_MANUFACTURER_STRING        "https://www.psk-online.ru"
+//#define USBD_PRODUCT_STRING_FS          "PskOnline PSK-X20 PPG Waveform Sensor"
+#define USBD_CONFIGURATION_STRING_FS    USBD_PRODUCT_STRING_FS
+#define USBD_INTERFACE_STRING_FS        USBD_PRODUCT_STRING_FS
+
 //#define USBD_SERIALNUMBER_STRING_FS     "00000000001A"
-#define USBD_CONFIGURATION_STRING_FS    "PskOnline P-19 Heart Rhythm Sensor"
-#define USBD_INTERFACE_STRING_FS        "PskOnline P-19 Heart Rhythm Sensor"
+#define USBD_SERIALNUMBER_STRING_FS     serialNumber
 
 /* USER CODE END PRIVATE_DEFINES */
 

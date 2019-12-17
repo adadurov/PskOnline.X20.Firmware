@@ -56,8 +56,7 @@
 
 #include "debug.h"
 #include "revision.h"
-
-#include "psk_x20.h"
+#include "usbd_desc.h"
 
 
 /* USER CODE END INCLUDE */
@@ -233,7 +232,12 @@ static int8_t CDC_Control(
 		  case X20_GET_CAPABILITIES_DESCRIPTOR:
 			  debug_write_string("   => X20_GET_CAPS "); debug_write_newline();
 
-              *responseData = (uint8_t*)X20_GetCapabilities(sensor);
+			  x20_capabilities *pCap = X20_GetCapabilities(sensor);
+			  pCap->firmware_build_date_str_idx = X20_BUILD_DATE_STRING_IDX;
+			  pCap->revision_info_str_idx = X20_REVISION_STRING_IDX;
+
+              *responseData = (uint8_t*)pCap;
+
               return USBD_OK;
 
 		  case X20_USE_PPG:

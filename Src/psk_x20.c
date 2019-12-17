@@ -117,8 +117,6 @@ HX20_SENSOR X20_ConfigureSensor(I2C_HandleTypeDef* phi2c, uint16_t max_usb_packa
     singleSensor.capabilities.bits_per_sample = singleSensor.bitsPerSample;
     singleSensor.capabilities.sampling_rate = singleSensor.samplingRate;
     singleSensor.capabilities.bytes_per_physio_transfer = singleSensor.physioTransferSize;
-    singleSensor.capabilities.firmware_build_date_str_idx = X20_BUILD_DATE_STRING_IDX;
-    singleSensor.capabilities.revision_info_str_idx = X20_REVISION_STRING_IDX;
 
     return (HX20_SENSOR)&singleSensor;
 }
