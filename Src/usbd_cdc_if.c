@@ -164,7 +164,8 @@ static int8_t CDC_DeInit_FS(void);
 static int8_t CDC_Control(
 				USBD_SetupReqTypedef *_req,
 				uint8_t **responseData,
-				uint16_t len);
+				uint16_t requestedLength,
+				uint16_t *actualLength);
 /* USER CODE END PRIVATE_FUNCTIONS_DECLARATION */
 
 /**
@@ -210,7 +211,8 @@ static int8_t CDC_DeInit_FS(void)
 static int8_t CDC_Control(
 		USBD_SetupReqTypedef *req,
 		uint8_t **responseData,
-		uint16_t len)
+		uint16_t requestedLength,
+		uint16_t *actualLength)
 {
 //  debug_write_string("CDC_Ctrl ");
 //  debug_write_int(req->bmRequest);
@@ -237,6 +239,7 @@ static int8_t CDC_Control(
 			  pCap->revision_info_str_idx = X20_REVISION_STRING_IDX;
 
               *responseData = (uint8_t*)pCap;
+              *actualLength = sizeof(x20_capabilities);
 
               return USBD_OK;
 

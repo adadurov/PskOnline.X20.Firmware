@@ -365,17 +365,20 @@ static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev,
       if (req->bmRequest & 0x80)
       {
     	usb_debug_write_string("in ");
+    	uint16_t actualLength = 0;
     	USBD_CDC_ItfTypeDef *interface = ((USBD_CDC_ItfTypeDef *)pdev->pUserData);
         uint8_t status = interface->Control(req,
         									&dataPtr,
-                                            req->wLength);
+                                            req->wLength,
+											&actualLength);
 
         if (USBD_OK == status)
         {
-          memcpy(hcdc->data, dataPtr, req->wLength);
+          uint16_t len = MIN(req->wLength, actualLength);
+          memcpy(hcdc->data, dataPtr, len);
           USBD_CtlSendData(pdev,
         		  	  	   hcdc->data,
-                           req->wLength);
+                           len);
           return USBD_OK;
         }
         return USBD_FAIL;
@@ -394,7 +397,7 @@ static uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev,
     {
       // no, there is no data stage
       usb_debug_write_string("nd ");
-      ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(req, 0, 0);
+      ((USBD_CDC_ItfTypeDef *)pdev->pUserData)->Control(req, 0, 0, NULL);
     }
     break;
 

@@ -100,7 +100,7 @@ typedef struct _USBD_CDC_Itf
   int8_t (* DeInit)        (void);
 
   // pay attention to the size of the buffer ( USBD_CDC_HandleTypeDef.data ) when using this function
-  int8_t (* Control)       (USBD_SetupReqTypedef*, uint8_t** ppData, uint16_t expectedSize);
+  int8_t (* Control)       (USBD_SetupReqTypedef*, uint8_t** ppData, uint16_t expectedSize, uint16_t *returnedSize);
   int8_t (* Receive)       (uint8_t *, uint32_t *);  
 
 }USBD_CDC_ItfTypeDef;
