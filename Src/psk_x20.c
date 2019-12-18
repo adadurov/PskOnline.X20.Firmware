@@ -310,8 +310,8 @@ void X20_TransmitSamples(X20_SENSOR *pSensor)
 ////            return USBD_FAIL == 2;
 //        	trace_write_string(" F");
 //        }
-    	trace_write_int(transmit_buffer->package_number);
-    	trace_write_newline();
+//    	trace_write_int(transmit_buffer->package_number);
+//    	trace_write_newline();
 
         debug_write_string("TR_TIME: "); debug_write_int(time); debug_write_newline();
     }
