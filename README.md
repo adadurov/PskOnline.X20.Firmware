@@ -20,6 +20,12 @@ terms included into each of the files.
 * Open source .Net client (https://github.com/adadurov/PskOnline.X20.DotNet) 
 * Custom PCB and enclosure (work in progress - to be published as open hardware)
 
+## Hardware Documentation
+
+Schematics: https://easyeda.com/editor#id=0f54b359eb3346139e6319dc807d9f70|301b5fc02a874223bf19331fa95dc1f2
+
+PCB Gerber files: see the ./hardware folder.
+
 ## Using VID & PID with derived products
 
 When customizing the hardware or the firmware, it is your responsibility to obtain a unique value for VID & PID to use in the products derived from this project. 
