@@ -100,9 +100,9 @@
 
 extern char serialNumber[20];
 
-#define USBD_VID                        1155
+#define USBD_VID                        0x1209
 #define USBD_LANGID_STRING              1033
-#define USBD_PID_FS                      22368
+#define USBD_PID_FS                     0x5252
 
 // Product & manufacturer strings come from the 'usbd_desc.h'
 // This way it may be reused somewhere else
