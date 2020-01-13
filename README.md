@@ -95,3 +95,22 @@ Windows baud rate: 1843200
 
 STM32 baud rate: 1943200 
 (a bit higher to help fit into the clock rate margin)
+
+### Connection table for prototyping
+
+Use with Bluepill and MAX30102 breakout board + serial to USB connector.
+
+MAX30102 Breakout Board Connections
+
+BluePill | MAX30102
+B10 | SDC
+B11 | SDA
+G   | GND
+3.3 | VCC 
+
+Serial port connections
+
+Bluepill | Serial
+A3 RX | TX 
+A2 TX | RX
+G     | GND
