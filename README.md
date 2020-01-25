@@ -102,17 +102,17 @@ Use with Bluepill and MAX30102 breakout board + serial to USB connector.
 
 MAX30102 Breakout Board Connections
 
-| BluePill | MAX30102 |
-| -------- | -------- |
-| B10 | SDC |
-| B11 | SDA |
-| G   | GND |
-| 3.3 | VCC |
+| BluePill   | MAX30102     | breadboard line | 
+| ---------- | ------------ | --------------- |
+| B10        | SDC          | R-28            |
+| B11        | SDA          | R-27            |
+| G          | GND          |  -              |
+| 3.3        | VCC          |  -              |
 
-Serial port connections
+Serial Port Connection
 
-| Bluepill | Serial adapter |
-| -------- | -------- |
-| A3 RX | TX |
-| A2 TX | RX |
-| G     | GND |
+| Bluepill | breadboard line | Serial adapter |
+| -------- | --------------- | -------------- |
+| A3 RX    |  12             | TX             |
+| A2 TX    |  14             | RX             |
+| G        |                 | GND            |
