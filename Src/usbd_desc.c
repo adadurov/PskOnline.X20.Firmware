@@ -444,39 +444,36 @@ uint8_t * USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *leng
   * @param length: pointer to the variable containing the size of the descriptor to transfer
   * @retval pointer to descriptor buffer}
   */
-uint8_t  *USBD_Sensor_GetUsrStrDescriptor(struct _USBD_HandleTypeDef *pdev ,uint8_t index,  uint16_t *length)
+uint8_t  *USBD_Sensor_GetUsrStrDescriptor(struct _USBD_HandleTypeDef *pdev ,uint8_t index,  uint16_t *pLengthInOut)
 {
-	  debug_write_string("  ");
-	  debug_write_string("GetUsrStrDesc");
-	  debug_write_string(" ");
+	  debug_write_string("GUSD ");
 	  debug_write_int(index);
 	  debug_write_string(" ");
-	  debug_write_int(*length);
+	  debug_write_int(*pLengthInOut);
 	  debug_write_newline();
-
-	  uint8_t *outBuf = NULL;
 
 	  if( MS_OS_DESCRIPTOR_INDEX == index )
 	  {
 		  // '!' is the request code that will be later sent
 		  // by the host to retrieve OS feature descriptors
-		  USBD_GetString((uint8_t*)"MSFT100!", USBD_StrDesc, length);
+		  USBD_GetString((uint8_t*)"MSFT100!", USBD_StrDesc, pLengthInOut);
 		  return USBD_StrDesc;
 	  }
 
 	  if( X20_REVISION_STRING_IDX == index )
 	  {
-		  USBD_GetString((uint8_t*)REVISION_INFO, USBD_StrDesc, length);
+		  USBD_GetString((uint8_t*)REVISION_INFO, USBD_StrDesc, pLengthInOut);
 		  return USBD_StrDesc;
 	  }
 
 	  if( X20_BUILD_DATE_STRING_IDX == index )
 	  {
-		  USBD_GetString((uint8_t*)BUILD_DATE, USBD_StrDesc, length);
+		  USBD_GetString((uint8_t*)BUILD_DATE, USBD_StrDesc, pLengthInOut);
 		  return USBD_StrDesc;
 	  }
 
-	  return outBuf;
+	  *pLengthInOut = 0;
+	  return USBD_StrDesc;
 }
 
 /**
