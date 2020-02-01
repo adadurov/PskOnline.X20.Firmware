@@ -77,7 +77,7 @@
 
 /* USER CODE BEGIN EXPORTED_DEFINES */
 #define USBD_MANUFACTURER_STRING        "https://www.psk-online.ru"
-#define USBD_PRODUCT_STRING_FS          "PskOnline PSK-X20 PPG Waveform Sensor"
+#define USBD_PRODUCT_STRING_FS          "PSK-X20 PPG Waveform Sensor"
 
 enum x20_strings {
   X20_REVISION_STRING_IDX = 0x41,
