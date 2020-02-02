@@ -28,6 +28,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_ctlreq.h"
 #include "usbd_ioreq.h"
+#include "debug.h"
 #include "debug_usb.h"
 #include "winusb.h"
 
@@ -357,6 +358,9 @@ static void USBD_GetDescriptor(USBD_HandleTypeDef *pdev ,
   
   usb_debug_write_string("USBD_GetDescriptor ");
   usb_debug_write_int(req->wValue >> 8);
+
+  usb_debug_write_int((uint8_t)(req->wValue));
+
   usb_debug_write_newline();
     
   switch (req->wValue >> 8)
@@ -794,15 +798,17 @@ void USBD_ParseSetupRequest(USBD_SetupReqTypedef *req, uint8_t *pdata)
 * @retval None
 */
 
-void USBD_CtlError( USBD_HandleTypeDef *pdev ,
-                            USBD_SetupReqTypedef *req)
+void USBD_CtlError( USBD_HandleTypeDef *pdev,
+                    USBD_SetupReqTypedef *req)
 {
-  usb_debug_write_string("USBD_CtlError"); usb_debug_write_newline();
+  debug_write_string("USBD_CtlError"); debug_write_newline();
 
   USBD_LL_StallEP(pdev , 0x80);
   USBD_LL_StallEP(pdev , 0);
 }
 
+
+#define MIN(a, b) (a) < (b) ? (a) : (b)
 
 /**
   * @brief  USBD_GetString
@@ -818,11 +824,12 @@ void USBD_GetString(uint8_t *desc, uint8_t *unicode, uint16_t *len)
   
   if (desc != NULL) 
   {
-    *len =  USBD_GetLen(desc) * 2 + 2;    
+    *len =  USBD_GetLen(desc) * 2 + 2;
+    *len = MIN(*len, USBD_MAX_STR_DESC_SIZ);
     unicode[idx++] = *len;
     unicode[idx++] =  USB_DESC_TYPE_STRING;
     
-    while (*desc != '\0') 
+    while ( (*desc != '\0') && (idx < USBD_MAX_STR_DESC_SIZ) )
     {
       unicode[idx++] = *desc++;
       unicode[idx++] =  0x00;

@@ -75,6 +75,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 
+#include "debug.h"
 #include "debug_usb.h"
 
 /** @addtogroup STM32F1xx_HAL_Driver
@@ -1000,6 +1001,8 @@ HAL_StatusTypeDef HAL_PCD_EP_Transmit(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, 
   */
 HAL_StatusTypeDef HAL_PCD_EP_SetStall(PCD_HandleTypeDef *hpcd, uint8_t ep_addr)
 {
+  debug_write_string("HAL_PCD_EP_SetStall: "); debug_write_int(ep_addr); debug_write_newline();
+
   PCD_EPTypeDef *ep = NULL;
   
   if ((0x80U & ep_addr) == 0x80U)
