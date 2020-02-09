@@ -358,7 +358,7 @@ static void USBD_GetDescriptor(USBD_HandleTypeDef *pdev ,
   
   usb_debug_write_string("USBD_GetDescriptor ");
   usb_debug_write_int(req->wValue >> 8);
-
+  usb_debug_write_string(" ");
   usb_debug_write_int((uint8_t)(req->wValue));
 
   usb_debug_write_newline();
