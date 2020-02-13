@@ -1,8 +1,6 @@
 
 #include "I2C_Software_Master.h"
 
-#include "max30102.h"
-
 #define SCL_PIN 	GPIO_PIN_6
 
 #define SDA_PIN 	GPIO_PIN_9
@@ -44,30 +42,6 @@ inline void I2C_delay(void)
         i--;
         __asm("nop");
     }
-}
-
-void I2C_SoftWare_Master_Test(void)
-{
-	uint8_t bytes[2];
-	while( 1)
-	{
-//		SCL_H;
-//		I2C_delay();
-////		SDA_H;
-////		I2C_delay();
-//		SCL_L;
-//		I2C_delay();
-//		I2C_delay();
-//		I2C_delay();
-////		SDA_L;
-////		I2C_delay();
-
-		I2C_SoftWare_Master_Read(MAX30102_I2C_WRITE_ADDR, MAX30102_REG_PART_ID, bytes, 1);
-
-		I2C_delay();
-		I2C_delay();
-	}
-
 }
 
 void I2C_SoftWare_Master_Init(void)
