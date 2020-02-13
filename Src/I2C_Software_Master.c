@@ -1,26 +1,70 @@
 
 #include "I2C_Software_Master.h"
 
-#define SCL_H         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET)
-#define SCL_L         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET)
+#include "max30102.h"
 
-#define SDA_H         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET)
-#define SDA_L         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET)
+#define SCL_PIN 	GPIO_PIN_6
 
-#define SCL_read      (GPIOB->IDR & GPIO_PIN_6)
-#define SDA_read      (GPIOB->IDR & GPIO_PIN_7)
+#define SDA_PIN 	GPIO_PIN_9
+
+
+#define PIN_RESET(port, pin)      port->BSRR = (uint32_t)pin << 16U
+#define PIN_SET(port, pin)        port->BSRR = pin
+
+
+#define SCL_H         PIN_SET(GPIOB, SCL_PIN)
+#define SCL_L         PIN_RESET(GPIOB, SCL_PIN)
+
+#define SDA_H         PIN_SET(GPIOB, SDA_PIN)
+#define SDA_L         PIN_RESET(GPIOB, SDA_PIN)
+
+#define SCL_read      (GPIOB->IDR & SCL_PIN)
+#define SDA_read      (GPIOB->IDR & SDA_PIN)
 
 #define I2C_DIRECTION_TRANSMITTER       ((uint8_t)0x00)
 #define I2C_DIRECTION_RECEIVER          ((uint8_t)0x01)
 
 
+void I2C_delay(void);
+
+uint8_t I2C_Start(void);
+void I2C_Stop(void);
+void I2C_Ack(void);
+void I2C_NoAck(void);
+uint8_t I2C_WaitAck(void);
+void I2C_SendByte(uint8_t byte);
+uint8_t I2C_ReceiveByte(void);
+
+
+
+inline void I2C_delay(void)
+{
+    volatile int i = 10;
+    while (i){
+        i--;
+        __asm("nop");
+    }
+}
+
 void I2C_SoftWare_Master_Test(void)
 {
+	uint8_t bytes[2];
 	while( 1)
 	{
-		SCL_H;
+//		SCL_H;
+//		I2C_delay();
+////		SDA_H;
+////		I2C_delay();
+//		SCL_L;
+//		I2C_delay();
+//		I2C_delay();
+//		I2C_delay();
+////		SDA_L;
+////		I2C_delay();
+
+		I2C_SoftWare_Master_Read(MAX30102_I2C_WRITE_ADDR, MAX30102_REG_PART_ID, bytes, 1);
+
 		I2C_delay();
-		SCL_L;
 		I2C_delay();
 	}
 
@@ -28,24 +72,20 @@ void I2C_SoftWare_Master_Test(void)
 
 void I2C_SoftWare_Master_Init(void)
 {
-
 	  GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	  /*Configure GPIO pin Output Level */
-	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+	  HAL_GPIO_WritePin(GPIOB, SCL_PIN, GPIO_PIN_RESET);
+	  HAL_GPIO_WritePin(GPIOB, SDA_PIN, GPIO_PIN_RESET);
 
-	  /*Configure GPIO pin : USER_LED_Pin */
-	  GPIO_InitStruct.Pin = GPIO_PIN_6;
 	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
 	  GPIO_InitStruct.Pull = GPIO_NOPULL;
-	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	  GPIO_InitStruct.Pin = SCL_PIN;
 	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	  GPIO_InitStruct.Pin = GPIO_PIN_7;
-	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-	  GPIO_InitStruct.Pull = GPIO_NOPULL;
-	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	  GPIO_InitStruct.Pin = SDA_PIN;
 	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     
@@ -59,15 +99,7 @@ void I2C_SoftWare_Master_Init(void)
     SDA_H;
 }
 
-	
-void I2C_delay(void)
-{
-    volatile int i = 10;		  
-    while (i){
-        i--;
-        __asm("nop");
-    }
-}
+
 
 uint8_t I2C_Start(void)
 {
@@ -177,7 +209,7 @@ uint8_t I2C_ReceiveByte(void)
         SCL_H;
         I2C_delay();
         if (SDA_read) 
-	{
+        {
             byte |= 0x01;
         }
     }

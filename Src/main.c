@@ -188,12 +188,6 @@ int main(void)
 
   TraceStartupInfo(&usb_package_size, serialNumber, usb_package_size);
 
-  uint8_t partId;
-  while (1)
-  {
-	  I2C_SoftWare_Master_Test();
-  }
-
   sensor = X20_ConfigureSensor(NULL /*use sw i2c*/, max_usb_package_size, &CDC_FreeToTransmit, &CDC_Transmit_FS, &Error_Handler);
   usb_package_size = X20_GetCapabilities(sensor)->bytes_per_physio_transfer;
 
