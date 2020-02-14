@@ -132,10 +132,10 @@ int16_t MAX30102_GetNumSamplesInFifo(I2C_HandleTypeDef *_hi2c)
 
 HAL_StatusTypeDef MAX30102_ReadFifo(I2C_HandleTypeDef *_hi2c, uint8_t* buffer, uint8_t num_bytes)
 {
-    uint8_t reg_fifo_data = MAX30102_REG_FIFO_DATA;
-    if (HAL_OK != HAL_I2C_Master_Transmit(_hi2c, MAX30102_I2C_WRITE_ADDR, &reg_fifo_data, 1, 1000))
+    if (0 != MAX30102_ReadRegister(MAX30102_I2C_WRITE_ADDR, MAX30102_REG_FIFO_DATA, buffer, num_bytes))
     {
         return HAL_ERROR;
     }
-    return HAL_I2C_Master_Receive(_hi2c, MAX30102_I2C_READ_ADDR, buffer, num_bytes, 1000);
+
+    return HAL_OK;
 }
