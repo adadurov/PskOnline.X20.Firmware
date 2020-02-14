@@ -6,37 +6,24 @@
  */
 
 #include "max30102.h"
-//#include "stm32f1xx_hal.h"
 #include "I2C_Software_Master.h"
 
 
 HAL_StatusTypeDef MAX30102_ReadRegister(I2C_HandleTypeDef *_hi2c, uint8_t regAddress, uint8_t* buffer, uint8_t count)
 {
-//    if (HAL_OK != HAL_I2C_Master_Transmit(_hi2c, MAX30102_I2C_WRITE_ADDR, &regAddress, 1, 1000))
-//    {
-//        return HAL_ERROR;
-//    }
-//    return HAL_I2C_Master_Receive(_hi2c, MAX30102_I2C_READ_ADDR, buffer, count, 1000);
-
 	if (0 != I2C_SoftWare_Master_Read(MAX30102_I2C_WRITE_ADDR, regAddress, buffer, count))
 	{
 		return HAL_ERROR;
 	}
-
 	return HAL_OK;
-
 }
 
 HAL_StatusTypeDef MAX30102_WriteRegister(I2C_HandleTypeDef *_hi2c, uint8_t regAddress, uint8_t value)
 {
-//    uint8_t buffer[] = { regAddress, value };
-//    return HAL_I2C_Master_Transmit(_hi2c, MAX30102_I2C_WRITE_ADDR, buffer, 2, 1000);
-
 	if (0 != I2C_SoftWare_Master_Write(MAX30102_I2C_WRITE_ADDR, regAddress, &value, 1))
 	{
 		return HAL_ERROR;
 	}
-
 	return HAL_OK;
 }
 

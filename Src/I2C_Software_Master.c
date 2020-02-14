@@ -24,6 +24,7 @@
 
 
 void I2C_delay(void);
+void I2C_delay_half(void);
 
 uint8_t I2C_Start(void);
 void I2C_Stop(void);
@@ -37,12 +38,22 @@ uint8_t I2C_ReceiveByte(void);
 
 inline void I2C_delay(void)
 {
-    volatile int i = 10;
+    volatile int i = 8;
     while (i){
         i--;
         __asm("nop");
     }
 }
+
+inline void I2C_delay_half(void)
+{
+    volatile int i = 4;
+    while (i){
+        i--;
+        __asm("nop");
+    }
+}
+
 
 void I2C_SoftWare_Master_Init(void)
 {
@@ -94,26 +105,26 @@ uint8_t I2C_Start(void)
 void I2C_Stop(void)
 {
     SCL_L;
-    I2C_delay();
+    I2C_delay_half();
     SDA_L;
-    I2C_delay();
+    I2C_delay_half();
     SCL_H;
-    I2C_delay();
+    I2C_delay_half();
     SDA_H;
-    I2C_delay();
+    I2C_delay_half();
 }
 
 
 void I2C_Ack(void)
 {
     SCL_L;
-    I2C_delay();
+    I2C_delay_half();
     SDA_L;
-    I2C_delay();
+    I2C_delay_half();
     SCL_H;
-    I2C_delay();
+    I2C_delay_half();
     SCL_L;
-    I2C_delay();
+    I2C_delay_half();
 }
 
 void I2C_NoAck(void)
@@ -131,9 +142,9 @@ void I2C_NoAck(void)
 uint8_t I2C_WaitAck(void)
 {
     SCL_L;
-    I2C_delay();
+    I2C_delay_half();
     SDA_H;
-    I2C_delay();
+    I2C_delay_half();
     SCL_H; 
 	 
     I2C_delay();
@@ -156,13 +167,13 @@ void I2C_SendByte(uint8_t byte)
     while (i--)
     {
         SCL_L;
-        I2C_delay();
+        I2C_delay_half();
         if (byte & 0x80)
             SDA_H;
         else
             SDA_L;
         byte <<= 1;
-        I2C_delay();
+        I2C_delay_half();
         SCL_H;
         I2C_delay();
     }
@@ -181,7 +192,7 @@ uint8_t I2C_ReceiveByte(void)
         SCL_L;
         I2C_delay();
         SCL_H;
-        I2C_delay();
+        I2C_delay_half();
         if (SDA_read) 
         {
             byte |= 0x01;
