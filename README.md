@@ -127,6 +127,6 @@ Serial Port Connection
 
 | Bluepill | breadboard line | Serial adapter |
 | -------- | --------------- | -------------- |
-| A3 RX    |  13             | TX             |
-| A2 TX    |  14             | RX             |
-| G        |                 | GND            |
+| A3 RX    |  R-13           | TX             |
+| A2 TX    |  R-14           | RX             |
+| A0+GND   |  R-16           | GND            |
