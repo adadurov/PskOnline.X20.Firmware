@@ -323,7 +323,31 @@ void X20_Task(HX20_SENSOR hSensor)
 
     X20_ExecutePendingCommands(pSensor);
 
-    X20_PutSamplesToRingBuffer(pSensor);
+	uint16_t added = ring_buffer_get_count(pSensor->pRingBuf);
+    {
+	    X20_PutSamplesToRingBuffer(pSensor);
 
-    X20_TransmitSamples(pSensor);
+	    uint16_t now = ring_buffer_get_count(pSensor->pRingBuf);
+		added = now - added;
+    }
+
+
+    {
+		uint16_t transfrerred = ring_buffer_get_count(pSensor->pRingBuf);
+	
+		X20_TransmitSamples(pSensor);
+	
+		uint16_t remaining = ring_buffer_get_count(pSensor->pRingBuf);
+		transfrerred -= remaining;
+		if (pSensor->started && (0 != added || 0 != transfrerred))
+		{
+			debug_write_int(added);
+			debug_write_string(" , ");
+			debug_write_int(transfrerred);
+			debug_write_string(" , ");
+			debug_write_int(remaining);
+			debug_write_newline();
+		}
+    }
+
 }

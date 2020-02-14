@@ -58,9 +58,10 @@
 #include "usbd_cdc_if.h"
 #include "debug.h"
 #include "uuid.h"
-#include "i2c_erratum.h"
 #include "revision.h"
 #include "psk_x20.h"
+
+#include "I2C_Software_Master.h"
 
 /* USER CODE END Includes */
 
@@ -80,9 +81,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-I2C_HandleTypeDef hi2c2;
-
-TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart2;
 
@@ -97,8 +95,6 @@ HX20_SENSOR sensor;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_TIM4_Init(void);
-static void MX_I2C2_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -172,9 +168,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM4_Init();
-  MX_I2C2_Init();
   MX_USART2_UART_Init();
+
+  I2C_SoftWare_Master_Init();
+
+  HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
 
   trace_write_init(&huart2);
   // needs a buffer of at least 16 bytes
@@ -187,11 +185,10 @@ int main(void)
   const uint16_t max_usb_package_size = 276;
 
   GPIO_Init_USB_Connect();
-  HAL_TIM_Base_Start_IT(&htim4);
 
   TraceStartupInfo(&usb_package_size, serialNumber, usb_package_size);
 
-  sensor = X20_ConfigureSensor(&hi2c2, max_usb_package_size, &CDC_FreeToTransmit, &CDC_Transmit_FS, &Error_Handler);
+  sensor = X20_ConfigureSensor(NULL /*use sw i2c*/, max_usb_package_size, &CDC_FreeToTransmit, &CDC_Transmit_FS, &Error_Handler);
   usb_package_size = X20_GetCapabilities(sensor)->bytes_per_physio_transfer;
 
   CDC_UseSensor(sensor);
@@ -261,85 +258,6 @@ void SystemClock_Config(void)
   }
 }
 
-/**
-  * @brief I2C2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C2_Init(void)
-{
-
-  /* USER CODE BEGIN I2C2_Init 0 */
-
-  /* USER CODE END I2C2_Init 0 */
-
-  /* USER CODE BEGIN I2C2_Init 1 */
-
-  /* USER CODE END I2C2_Init 1 */
-  hi2c2.Instance = I2C2;
-  hi2c2.Init.ClockSpeed = 200000;
-  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c2.Init.OwnAddress1 = 0;
-  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c2.Init.OwnAddress2 = 0;
-  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C2_Init 2 */
-
-  I2C2_ClearBusyFlagErratum(&hi2c2);
-  /* USER CODE END I2C2_Init 2 */
-
-}
-
-/**
-  * @brief TIM4 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM4_Init(void)
-{
-
-  /* USER CODE BEGIN TIM4_Init 0 */
-
-  /* USER CODE END TIM4_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM4_Init 1 */
-
-  /* USER CODE END TIM4_Init 1 */
-  htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 47999;
-  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 250;
-  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM4_Init 2 */
-
-  /* USER CODE END TIM4_Init 2 */
-
-}
 
 /**
   * @brief USART2 Initialization Function
@@ -421,22 +339,6 @@ static void GPIO_Init_USB_Connect(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if( htim->Instance == TIM4 )
-	{
-		if( X20_IsStarted(sensor) )
-		{
-			// flash LED when recording physio data
-			//HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
-
-			// switch LED ON when recording physio data
-			HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
-		}
-		else
-		{
-			// Switch LED off
-			HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
-		}
-	}
 }
 
 /* USER CODE END 4 */

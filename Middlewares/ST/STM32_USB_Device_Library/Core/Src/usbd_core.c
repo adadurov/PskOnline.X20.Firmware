@@ -28,6 +28,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_core.h"
 
+#include "debug.h"
 #include "debug_usb.h"
 
 /** @addtogroup STM32_USBD_DEVICE_LIBRARY
@@ -272,6 +273,8 @@ USBD_StatusTypeDef USBD_LL_SetupStage(USBD_HandleTypeDef *pdev, uint8_t *psetup)
 {
   USBD_ParseSetupRequest(&pdev->request, psetup);
   
+  usb_debug_write_string("==================>"); usb_debug_write_newline();
+
   usb_debug_usb_setup_trace("USBD_LL_SetupStage", &pdev->request);
 
   pdev->ep0_state = USBD_EP0_SETUP;

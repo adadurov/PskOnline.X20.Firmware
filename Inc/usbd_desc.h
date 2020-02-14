@@ -77,7 +77,9 @@
 
 /* USER CODE BEGIN EXPORTED_DEFINES */
 #define USBD_MANUFACTURER_STRING        "https://www.psk-online.ru"
-#define USBD_PRODUCT_STRING_FS          "PskOnline PSK-X20 PPG Waveform Sensor"
+// Bug AB#295 occurs when the string descriptor containing Product ID is > 64 bytes long
+// Which means the string itself should be at most 30 Latin characters long
+#define USBD_PRODUCT_STRING_FS          "PSK-X20 PPG Waveform Sensor"
 
 enum x20_strings {
   X20_REVISION_STRING_IDX = 0x41,

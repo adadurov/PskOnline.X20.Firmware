@@ -75,6 +75,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 
+#include "debug.h"
 #include "debug_usb.h"
 
 /** @addtogroup STM32F1xx_HAL_Driver
@@ -586,10 +587,12 @@ void HAL_PCD_IRQHandler(PCD_HandleTypeDef *hpcd)
 
   if (__HAL_PCD_GET_FLAG (hpcd, USB_ISTR_PMAOVR))
   {
+    usb_debug_write_string("$PMAOVR"); usb_debug_write_newline();
     __HAL_PCD_CLEAR_FLAG(hpcd, USB_ISTR_PMAOVR);    
   }
   if (__HAL_PCD_GET_FLAG (hpcd, USB_ISTR_ERR))
   {
+	usb_debug_write_string("$ERR"); usb_debug_write_newline();
     __HAL_PCD_CLEAR_FLAG(hpcd, USB_ISTR_ERR); 
   }
 
@@ -1000,6 +1003,8 @@ HAL_StatusTypeDef HAL_PCD_EP_Transmit(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, 
   */
 HAL_StatusTypeDef HAL_PCD_EP_SetStall(PCD_HandleTypeDef *hpcd, uint8_t ep_addr)
 {
+  debug_write_string("HAL_PCD_EP_SetStall: "); debug_write_int(ep_addr); debug_write_newline();
+
   PCD_EPTypeDef *ep = NULL;
   
   if ((0x80U & ep_addr) == 0x80U)
@@ -1210,7 +1215,7 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
   __IO uint16_t wIstr = 0;  
   __IO uint16_t wEPVal = 0;
 
-  usb_debug_write_string("*");
+  usb_debug_write_newline();
   
   /* stay in loop while pending interrupts */
   while (((wIstr = hpcd->Instance->ISTR) & USB_ISTR_CTR) != 0)
@@ -1218,7 +1223,7 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
     /* extract highest priority endpoint number */
     epindex = (uint8_t)(wIstr & USB_ISTR_EP_ID);
     
-    usb_debug_write_string("%");
+    usb_debug_write_string("*");
     usb_debug_write_int(epindex);
 
     if (epindex == 0)
@@ -1249,6 +1254,8 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
           hpcd->USB_Address = 0U;
         }
         
+        usb_debug_write_string("-> TX DONE");
+        usb_debug_write_newline();
       }
       else
       {
@@ -1270,10 +1277,27 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
           usb_debug_write_int(ep->pmaadress); usb_debug_write_string(" ");
           usb_debug_write_int(ep->xfer_count); usb_debug_write_string(" ");
 
+          if (0 == ep->xfer_count)
+          {
+        	  // Print ISTR register
+        	  usb_debug_write_string("-> USB_ISTR: ");
+        	  usb_debug_write_int(wIstr); usb_debug_write_string(" ");
+
+              // dump content copied from the PMA
+              USB_ReadPMA(hpcd->Instance, (uint8_t*)hpcd->Setup ,ep->pmaadress , 8);
+        	  for (int xx = 0; xx < 8; ++xx)
+        	  {
+        		  usb_debug_write_int(((uint8_t*)hpcd->Setup)[xx]); usb_debug_write_string(" ");
+        	  }
+        	  usb_debug_write_string(" ");
+              // no use to continue processing ?
+          }
+
           USB_ReadPMA(hpcd->Instance, (uint8_t*)hpcd->Setup ,ep->pmaadress , ep->xfer_count);       
+
           /* SETUP bit kept frozen while CTR_RX = 1*/ 
-          PCD_CLEAR_RX_EP_CTR(hpcd->Instance, PCD_ENDP0); 
-          
+          PCD_CLEAR_RX_EP_CTR(hpcd->Instance, PCD_ENDP0);
+
           /* Process SETUP Packet*/
           HAL_PCD_SetupStageCallback(hpcd);
         }

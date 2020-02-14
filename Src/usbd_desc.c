@@ -342,7 +342,7 @@ uint8_t * USBD_FS_OsDescriptor(USBD_SpeedTypeDef speed, USBD_SetupReqTypedef *re
   */
 uint8_t * USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
-  debug_write_string("USBD_FS_LangIDStrDescriptor"); debug_write_newline();
+  debug_write_string("GET_LangIdStr"); debug_write_newline();
 
   *length = sizeof(USBD_LangIDDesc);
   return USBD_LangIDDesc;
@@ -444,39 +444,34 @@ uint8_t * USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *leng
   * @param length: pointer to the variable containing the size of the descriptor to transfer
   * @retval pointer to descriptor buffer}
   */
-uint8_t  *USBD_Sensor_GetUsrStrDescriptor(struct _USBD_HandleTypeDef *pdev ,uint8_t index,  uint16_t *length)
+uint8_t  *USBD_Sensor_GetUsrStrDescriptor(struct _USBD_HandleTypeDef *pdev ,uint8_t index,  uint16_t *pOutLen)
 {
-	  debug_write_string("  ");
-	  debug_write_string("GetUsrStrDesc");
-	  debug_write_string(" ");
-	  debug_write_int(index);
-	  debug_write_string(" ");
-	  debug_write_int(*length);
-	  debug_write_newline();
-
-	  uint8_t *outBuf = NULL;
+	  debug_write_string("GUSD "); debug_write_int(index);
 
 	  if( MS_OS_DESCRIPTOR_INDEX == index )
 	  {
 		  // '!' is the request code that will be later sent
 		  // by the host to retrieve OS feature descriptors
-		  USBD_GetString((uint8_t*)"MSFT100!", USBD_StrDesc, length);
-		  return USBD_StrDesc;
+		  USBD_GetString((uint8_t*)"MSFT100!", USBD_StrDesc, pOutLen);
 	  }
 
-	  if( X20_REVISION_STRING_IDX == index )
+	  else if( X20_REVISION_STRING_IDX == index )
 	  {
-		  USBD_GetString((uint8_t*)REVISION_INFO, USBD_StrDesc, length);
-		  return USBD_StrDesc;
+		  USBD_GetString((uint8_t*)REVISION_INFO, USBD_StrDesc, pOutLen);
 	  }
 
-	  if( X20_BUILD_DATE_STRING_IDX == index )
+	  else if( X20_BUILD_DATE_STRING_IDX == index )
 	  {
-		  USBD_GetString((uint8_t*)BUILD_DATE, USBD_StrDesc, length);
-		  return USBD_StrDesc;
+		  USBD_GetString((uint8_t*)BUILD_DATE, USBD_StrDesc, pOutLen);
+	  }
+	  else
+	  {
+		  *pOutLen = 0;
 	  }
 
-	  return outBuf;
+	  debug_write_string(" => "); debug_write_int(*pOutLen); debug_write_newline();
+
+	  return USBD_StrDesc;
 }
 
 /**

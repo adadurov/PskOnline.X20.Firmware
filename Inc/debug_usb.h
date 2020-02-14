@@ -5,6 +5,7 @@
 
 #ifdef ENABLE_USB_DEBUG
 
+#include "usbd_def.h"
 	extern void usb_debug_usb_setup_trace(const char *source, USBD_SetupReqTypedef *req);
 
 	#define usb_debug_write_counter					debug_write_counter

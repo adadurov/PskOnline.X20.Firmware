@@ -28,6 +28,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_ioreq.h"
 
+#include "debug.h"
 #include "debug_usb.h"
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
@@ -99,7 +100,7 @@ USBD_StatusTypeDef  USBD_CtlSendData (USBD_HandleTypeDef  *pdev,
                                uint16_t len)
 {
 
-  usb_debug_write_string("USBD_CtlSendData: "); usb_debug_write_int(len); usb_debug_write_newline();
+  debug_write_string("USBD_CtlSend: "); debug_write_int(len); debug_write_newline();
 
   /* Set EP0 State */
   pdev->ep0_state          = USBD_EP0_DATA_IN;                                      

@@ -63,6 +63,7 @@
 #include "usbd_desc.h"
 #include "usbd_ctlreq.h"
 
+#include "debug.h"
 #include "debug_usb.h"
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
@@ -163,14 +164,17 @@ USBD_ClassTypeDef  USBD_CDC =
 {
   USBD_CDC_Init,
   USBD_CDC_DeInit,
+
   USBD_CDC_Setup,
   NULL,                 /* EP0_TxSent, */
   USBD_CDC_EP0_RxReady,
+
   USBD_CDC_DataIn,
   USBD_CDC_DataOut,
   NULL,
   NULL,
   NULL,     
+
   USBD_Sensor_GetCfgDesc_HS,
   USBD_Sensor_GetCfgDesc_FS,
   USBD_Sensor_GetCfgDesc_Other,
