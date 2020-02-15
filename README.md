@@ -112,21 +112,28 @@ STM32 baud rate: 1943200
 
 ### Connection table for prototyping
 
-Use with Bluepill and MAX30102 breakout board + serial to USB connector.
+Use with Bluepill and MAX30102 breakout board + serial to USB connector + .
 
-MAX30102 Breakout Board Connections
+#### Power connections
+ 
+| BluePill / breadboard line   | breadboard power line   | 
+| ---------------------------- | ----------------------- |
+| G / R-1                      | -                       |
+| 3.3 / R-3                    | +                       |
 
-| BluePill   | MAX30102     | breadboard line | 
-| ---------- | ------------ | --------------- |
-| B6         | SDC          | L-27            |
-| B9         | SDA          | L-28            |
-| G          | GND          |  -              |
-| 3.3        | VCC          |  -              |
+#### MAX30102 connections
 
-Serial Port Connection
+| BluePill / breadboard line   | MAX30102 / breadboard line   | 
+| ---------------------------- | ---------------------------- |
+| B10 / R-6                    | SDC / R-28                   |
+| B11 / R-5                    | SDA / R-27                   |
+| -- / +                       | R-26                         |
+| -- / -                       | R-29                         |
 
-| Bluepill | breadboard line | Serial adapter |
-| -------- | --------------- | -------------- |
-| A3 RX    |  R-13           | TX             |
-| A2 TX    |  R-14           | RX             |
-| A0+GND   |  R-16           | GND            |
+#### Serial Port Connection
+
+| Bluepill / breadboard line   | Serial adapter   |
+| ---------------------------- | ---------------- |
+| TX / A2 / R-14               | RX               |
+| RX / A3 / R-13               | TX               |
+| A0+GND  / R-16               | GND              |

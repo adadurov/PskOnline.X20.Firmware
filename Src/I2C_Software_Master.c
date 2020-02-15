@@ -1,9 +1,12 @@
 
 #include "I2C_Software_Master.h"
 
-#define SCL_PIN 	GPIO_PIN_6
+//#define SCL_PIN 	GPIO_PIN_6
+//#define SDA_PIN 	GPIO_PIN_9
 
-#define SDA_PIN 	GPIO_PIN_9
+#define SCL_PIN 	GPIO_PIN_10
+#define SDA_PIN 	GPIO_PIN_11
+
 
 
 #define PIN_RESET(port, pin)      port->BSRR = (uint32_t)pin << 16U
