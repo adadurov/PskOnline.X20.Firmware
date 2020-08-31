@@ -15,6 +15,7 @@ terms included into each of the files.
 * Transmit PPG waveform samples to the USB host
 * Sampling rate: 400 Hz / 18 bits per sample
 * FIFO for 1000 4-byte samples
+* Power consumption: no more than 45 mA
 * WinUSB compatible - requires no custom drivers on Windows 7 and later
 * Unique serial numbers based on the STM32 MCUs' unique IDs
 * Open source .Net client (https://github.com/adadurov/PskOnline.X20.DotNet) 
