@@ -191,7 +191,7 @@ __ALIGN_BEGIN static uint8_t USBD_Sensor_CfgDesc[PHYSIO_SENSOR_CONFIG_DESC_SIZE]
         0x01, /*bConfigurationValue: Configuration value*/
         0x00, /*iConfiguration: Index of string descriptor describing the configuration*/
         0xC0, /*bmAttributes: bus powered */
-        0x32, /*MaxPower 100 mA: this current is used for detecting Vbus*/
+        0x19, /*MaxPower 50 mA - the measured consumption of 45 mA + 10% margin just in case*/
 
         /************** Descriptor of Physiological interface ****************/
         /* 09 */
