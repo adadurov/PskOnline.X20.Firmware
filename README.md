@@ -19,6 +19,7 @@ terms included into each of the files.
 * WinUSB compatible - requires no custom drivers on Windows 7 and later
 * Unique serial numbers based on the STM32 MCUs' unique IDs
 * Open source .Net client (https://github.com/adadurov/PskOnline.X20.DotNet) 
+* Prototype enclosure for MH-ET_LIVE and bluePill -- https://grabcad.com/library/mh-et_live-box-max30102-ppg-waveform-sensor-1
 * Custom PCB and enclosure (work in progress - to be published as open hardware)
 
 ## Hardware Documentation
