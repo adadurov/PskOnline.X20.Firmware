@@ -75,6 +75,8 @@ Stops transmission of the PPG waveform data.
 
 * Bluepill board (https://wiki.stm32duino.com/index.php?title=Blue_Pill) based on STM32F103C8T6 chip or a replacement.
 * MAX30102 (https://datasheets.maximintegrated.com/en/ds/MAX30102.pdf) breakout board (https://ru.aliexpress.com/item/TZT-MH-ET-LIVE-MAX30102/32902336311.html?spm=a2g0s.9042311.0.0.3b0033edxrZMlh)
+* 800 nm IR pass filter (Purchased from Aliexpress. As an alternative, a regular glass would be fine as well.
+https://m.aliexpress.ru/item/4000190603427.html?sku_id=10000000711889116)
 
 The code is also compatible with Olimext STM32-P103 board (https://www.olimex.com/Products/ARM/ST/STM32-P103/) with controllable USB pull-up circuitry.
 
